@@ -6,6 +6,7 @@ Este repositorio documenta el avance del proyecto de clasificación binaria para
 Actualmente se encuentra completado:
 - Semana 1: comprensión del problema y análisis exploratorio (EDA).
 - Semana 2 (preparación de datos): limpieza, validación, selección de variables y partición de datos.
+- Semana 3 (Persona 3): entrenamiento y evaluación de dos modelos base con métricas y matrices de confusión.
 
 ## Objetivo del proyecto
 Construir, evaluar y comparar modelos de clasificación para predecir la variable Class:
@@ -46,7 +47,7 @@ Variables disponibles para la siguiente etapa:
 ## Cómo continuar (siguiente etapa)
 Para continuar de forma consistente con el trabajo ya realizado:
 1. Usar el notebook principal como fuente única de ejecución y evidencia.
-2. Entrenar los modelos base sobre los mismos splits ya definidos.
+2. Completar el tercer modelo base sobre los mismos splits ya definidos.
 3. Evaluar cada modelo con Accuracy, Precision, Recall y F1.
 4. Construir matriz de confusión por modelo.
 5. Consolidar resultados en una tabla comparativa única.
