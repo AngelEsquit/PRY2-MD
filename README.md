@@ -1,69 +1,33 @@
 # Proyecto 2 - Data Mining
 
-## Estado actual
-Este repositorio documenta el avance del proyecto de clasificación binaria para detección de cáncer de mama usando el dataset Wisconsin Breast Cancer.
+### Detección de Cáncer de Mama – Wisconsin Breast Cancer Dataset
 
-Actualmente se encuentra completado:
-- Semana 1: comprensión del problema y análisis exploratorio (EDA).
-- Semana 2 (preparación de datos): limpieza, validación, selección de variables y partición de datos.
-- Semana 3 (Persona 3): entrenamiento y evaluación de dos modelos base con métricas y matrices de confusión.
+**Universidad del Valle de Guatemala | Semestre I 2026**
 
-## Objetivo del proyecto
-Construir, evaluar y comparar modelos de clasificación para predecir la variable Class:
-- 2 = Benigno
-- 4 = Maligno
+Javier España #23361 | Angel Esquit #23221 | Roberto Barreda #23354 | Diego Lopez #23747
 
-## Estructura del repositorio
-- data/: datasets en distintas etapas.
-- docs/: lineamientos oficiales del proyecto y reporte de avance.
-- notebook/: notebook principal con todo el flujo de trabajo.
 
-## Artefactos disponibles
-### Datos
-- data/Datos.csv: dataset original.
-- data/Datos_limpio.csv: dataset limpio con identificador para trazabilidad.
-- data/Datos_modelado.csv: dataset limpio sin identificador, listo para modelado.
+## Objetivo
+Construir y comparar modelos de clasificación binaria para predecir `Class` en el dataset Wisconsin Breast Cancer:
+- `2 = Benigno`
+- `4 = Maligno`
 
-### Documentación
-- docs/Proyecto2_PBL (3).pdf: lineamientos oficiales y rúbrica por semanas.
-- docs/Semana1_EDA_Report.pdf: reporte técnico de Semana 1.
+## Estado del proyecto
+- Semana 1: EDA completado.
+- Semana 2: preprocesamiento + 3 modelos base completados (Regresión Logística, KNN, SVM).
+- Semana 3: pendiente (optimización y selección final).
 
-### Notebook principal
-- notebook/EDA.ipynb: contiene EDA, limpieza/validación y la preparación para modelado.
+## Archivos clave
+- `notebook/EDA.ipynb`: flujo principal integrado (EDA, limpieza, split, modelos base y comparación).
+- `data/Datos.csv`: dataset original.
+- `data/Datos_limpio.csv`: dataset limpio con identificador.
+- `data/Datos_modelado.csv`: dataset limpio sin identificador (listo para modelado).
 
-## Qué ya quedó listo para modelar
-Dentro de notebook/EDA.ipynb ya están definidos y ejecutados:
-- Escenario A: todas las variables predictoras.
-- Escenario B: subconjunto top de variables discriminativas.
-- Train/Test split estratificado 80/20.
-- random_state fijo para reproducibilidad.
-- Validación de proporciones de clase en train y test.
-- Handoff de matrices en memoria para entrenamiento.
+## Ejecución
+1. Abrir `notebook/EDA.ipynb`.
+2. Ejecutar las celdas en orden.
+3. Verificar dependencias: `pandas`, `numpy`, `matplotlib`, `seaborn`, `scikit-learn`.
 
-Variables disponibles para la siguiente etapa:
-- X_train_all, X_test_all, y_train, y_test
-- X_train_top, X_test_top, y_train, y_test
-
-## Cómo continuar (siguiente etapa)
-Para continuar de forma consistente con el trabajo ya realizado:
-1. Usar el notebook principal como fuente única de ejecución y evidencia.
-2. Completar el tercer modelo base sobre los mismos splits ya definidos.
-3. Evaluar cada modelo con Accuracy, Precision, Recall y F1.
-4. Construir matriz de confusión por modelo.
-5. Consolidar resultados en una tabla comparativa única.
-6. Documentar hallazgos con foco en desempeño de la clase maligna.
-
-## Criterios de consistencia recomendados
-- No redefinir splits ni cambiar random_state durante la comparación base.
-- Mantener trazabilidad entre resultados, celdas del notebook y documento escrito.
-- Reportar métricas con el mismo formato para todos los modelos.
-- Evitar conclusiones sin evidencia cuantitativa.
-
-## Ejecución rápida
-1. Abrir notebook/EDA.ipynb.
-2. Verificar que el entorno tenga pandas y scikit-learn.
-3. Ejecutar celdas en orden.
-4. Continuar desde la sección de modelado sobre las matrices ya generadas.
-
-## Nota
-Este README resume el estado operativo del repositorio para permitir continuidad técnica inmediata, manteniendo coherencia con los documentos oficiales y el notebook principal.
+## Entregables (resumen)
+- Semana 2 en notebook: preprocesamiento, selección de variables, train/test split, 3 modelos base, métricas y matrices de confusión.
+- Documento formal de entrega: consolidar en `docs/` según formato solicitado por el curso.
