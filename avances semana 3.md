@@ -1,43 +1,51 @@
 # Avances Semana 3
 
 ## Objetivo de este documento
-Centralizar el estado real de avance de Semana 3 (validación y tuning inicial) para que la siguiente etapa continúe con el mismo diseño experimental, sin suposiciones y sin romper comparabilidad.
+Centralizar el estado real de avance de Semana 3 para que la comparacion final y el documento se construyan sobre un mismo diseno experimental, sin suposiciones y sin romper comparabilidad entre modelos.
 
 ## Alcance cubierto hasta ahora
 Este avance consolida lo realizado en:
-- Validación y diseño experimental (equivalente al bloque de validación base).
-- Optimización de Regresión Logística y KNN.
+- Validacion y diseno experimental.
+- Optimizacion de Regresion Logistica y KNN.
+- Optimizacion de SVM con kernel RBF.
+- Analisis integrado de sobreajuste/subajuste y comportamiento sesgo-varianza.
 
-No incluye todavía:
-- Optimización de SVM con análisis profundo de overfitting/underfitting.
-- Comparación final de los tres modelos optimizados.
-- Selección final de modelo de Semana 3.
+Todavia falta:
+- Definir la seleccion final de modelo de Semana 3.
+- Redactar el documento formal de 3-4 paginas.
+- Revisar consistencia final entre notebook y documento.
 
 ## Notebook de referencia
 - notebook/Validacion y Diseno Experimental.ipynb
 
-Este notebook contiene todo el flujo vigente de Semana 3 y debe mantenerse como fuente única para continuidad.
+Este notebook debe mantenerse como fuente unica para continuidad. Ahora incluye:
+- Validacion base.
+- Tuning de LR y KNN.
+- Tuning de SVM.
+- Tablas integradas de base vs optimizado.
+- Evidencia de ajuste y ranking de candidatos optimizados.
 
-## Diseño experimental ya fijado (no cambiar)
+## Diseno experimental ya fijado (no cambiar)
 1. Dataset de entrada: data/Datos_modelado.csv
 2. Split heredado de Semana 2: 80/20 estratificado
 3. Random state: 42
 4. Escenarios de variables:
 - Escenario A: todas las variables
 - Escenario B: top 3 variables (Bare Nuclei, Uniformity of Cell Size, Uniformity of Cell Shape)
-5. Validación: StratifiedKFold con 5 folds (shuffle=True, random_state=42)
+5. Validacion: StratifiedKFold con 5 folds (shuffle=True, random_state=42)
 6. Regla anti fuga:
 - Escalado dentro de Pipeline
 - Test set sin uso en tuning
-- Decisiones de selección basadas en validación
+- Decisiones de seleccion basadas en validacion
 
-## Avance de validación base (pre-tuning)
-Ya está implementado y ejecutado en el notebook:
-- Definición del esquema de validación y métricas comunes.
-- Evaluación base de LR, KNN y SVM en ambos escenarios.
-- Tablas de resultados CV globales y por escenario.
+## Avance de validacion base (pre-tuning)
+Ya esta implementado y ejecutado en el notebook:
+- Confirmacion del dataset final y del split heredado de Semana 2.
+- Definicion del esquema de validacion y metricas comunes.
+- Evaluacion base de LR, KNN y SVM en ambos escenarios.
+- Tablas CV globales y por escenario.
 - Tabla de consistencia CV vs Test.
-- Sección de control de fuga de información.
+- Seccion de control de fuga de informacion.
 
 Variables/artefactos disponibles en kernel:
 - cv_strategy
@@ -47,48 +55,59 @@ Variables/artefactos disponibles en kernel:
 - df_cv_results
 - df_cv_vs_test
 
-## Avance de optimización (LR y KNN)
-Ya está implementado y ejecutado en el notebook:
+## Avance de optimizacion (LR, KNN y SVM)
+Ya esta implementado en el notebook:
 - Tuning en ambos escenarios con GridSearchCV.
-- Métrica principal de selección: recall de clase maligna (Class=4).
-- Grilla media y trazable para LR y KNN.
-- Tabla de mejores hiperparámetros.
-- Tabla comparativa base vs optimizado.
-- Tabla de deltas (optimizado - base).
-- Diagnóstico de ajuste con gap train-valid.
+- Metrica principal de seleccion: recall de la clase maligna (Class=4).
+- Grillas trazables para LR, KNN y SVM-RBF.
+- Tabla de mejores hiperparametros por modelo y escenario.
+- Comparacion base vs optimizado en la misma metrica objetivo.
+- Tabla de deltas y tabla integrada de candidatos optimizados.
+- Diagnostico de ajuste con gap train-valid.
 
 Variables/artefactos disponibles en kernel:
 - scorer_recall_maligna
 - param_grid_lr
 - param_grid_knn
+- param_grid_svm
 - tuning_store
-- best_params_df
-- df_compare
-- df_delta
-- df_fit_diag
+- svm_best_params_df
+- df_svm_compare
+- df_svm_fit
+- df_svm_errors
+- df_svm_top
+- best_params_df_all
+- df_compare_all
+- df_delta_all
+- df_fit_diag_all
+- df_optimized_only
 
 ## Hallazgos funcionales ya documentados
-1. LR optimizada muestra mejora competitiva respecto a su baseline, especialmente en reducción de falsos negativos.
-2. KNN optimizado no muestra mejora consistente respecto al baseline en los dos escenarios.
-3. En LR y KNN no se observan señales fuertes de sobreajuste con el criterio de gap train-valid aplicado.
+1. LR optimizada mejora frente a su baseline y sigue siendo competitiva por AUC y balance precision-recall.
+2. KNN optimizado no muestra mejora consistente respecto al baseline.
+3. SVM optimizado es el modelo mas fuerte en recall de malignos y reduccion de falsos negativos.
+4. En escenario A, SVM optimizado alcanza recall_test_maligna = 1.0000 y FN_Test = 0.
+5. En escenario B, SVM optimizado reduce falsos negativos de 4 a 1.
+6. No se observan senales fuertes de sobreajuste por gap train-valid en los modelos optimizados; el trade-off mas claro en SVM-A es una caida de precision/AUC a cambio de mayor sensibilidad.
 
-## Condiciones obligatorias para continuar
-Para mantener rigor y comparabilidad en lo que sigue:
+## Condiciones obligatorias para cerrar Semana 3
+Para mantener rigor y comparabilidad en la etapa final:
 1. Reutilizar exactamente el mismo split y cv_strategy.
-2. Mantener el test set intacto hasta evaluación final de cada candidato.
-3. Reportar resultados nuevos en el mismo formato de tablas ya existente.
-4. No cambiar la métrica principal del tuning sin dejar trazabilidad explícita.
+2. Mantener el test set intacto; ya no debe usarse para decisiones nuevas de tuning.
+3. Reportar la comparacion final usando las tablas integradas del notebook.
+4. Justificar la seleccion final con recall de malignos, falsos negativos, estabilidad y trade-offs, no solo con accuracy.
 
-## Qué necesita la siguiente etapa para cerrar Semana 3
-1. Tomar SVM base y ejecutar tuning con el mismo protocolo.
-2. Repetir comparación base vs optimizado para SVM.
-3. Incorporar análisis de sobreajuste/subajuste con criterio equivalente al ya usado.
-4. Integrar LR/KNN/SVM optimizados en una sola tabla comparativa formal.
-5. Definir modelo final con justificación técnica y trade-offs.
+## Que necesita la siguiente etapa para cerrar Semana 3
+1. Tomar `df_optimized_only` como base para la comparacion final formal.
+2. Definir el modelo final y justificar si se privilegia sensibilidad clinica (SVM) o separacion probabilistica mas balanceada (LR).
+3. Redactar el documento final de 3-4 paginas.
+4. Verificar consistencia entre las tablas del notebook y el texto final.
 
-## Checklist rápido de continuidad
-- [ ] Abrir notebook/Validacion y Diseno Experimental.ipynb
-- [ ] Ejecutar en orden desde imports hasta sección de tuning ya implementada
-- [ ] Verificar existencia de best_params_df, df_compare, df_delta, df_fit_diag
-- [ ] Implementar tuning de SVM con el mismo protocolo
-- [ ] Consolidar comparación final de optimizados
+## Checklist rapido de continuidad
+- [x] Abrir notebook/Validacion y Diseno Experimental.ipynb
+- [x] Verificar split heredado y esquema de validacion
+- [x] Implementar tuning de LR y KNN
+- [x] Implementar tuning de SVM con el mismo protocolo
+- [x] Consolidar comparacion integrada de modelos optimizados
+- [ ] Seleccionar el modelo final
+- [ ] Redactar el documento final de Semana 3

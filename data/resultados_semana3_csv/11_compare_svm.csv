@@ -1,0 +1,5 @@
+﻿Escenario,Tipo,Recall_CV_maligna,Recall_Test_maligna,Precision_Test_maligna,F1_Test_maligna,Accuracy_Test,AUC_Test,FN_Test
+A - Todas las variables,Base,0.9632,0.9574,0.9375,0.9474,0.963,0.9908,2
+A - Todas las variables,Optimizado,1.0,1.0,0.9038,0.9495,0.963,0.9744,0
+B - Top 3 variables,Base,0.9418,0.9149,0.9348,0.9247,0.9481,0.9877,4
+B - Top 3 variables,Optimizado,0.9735,0.9787,0.9388,0.9583,0.9704,0.9705,1

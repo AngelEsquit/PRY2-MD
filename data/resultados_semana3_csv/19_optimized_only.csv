@@ -1,0 +1,7 @@
+﻿Escenario,Modelo,Tipo,Recall_CV_maligna,Recall_Test_maligna,Precision_Test_maligna,F1_Test_maligna,Accuracy_Test,AUC_Test,FN_Test,Sostiene_en_test
+A - Todas las variables,SVM,Optimizado,1.0,1.0,0.9038,0.9495,0.963,0.9744,0,si
+A - Todas las variables,Regresion Logistica,Optimizado,0.9789,0.9574,0.9375,0.9474,0.963,0.9944,2,si
+A - Todas las variables,KNN,Optimizado,0.9632,0.9149,0.9348,0.9247,0.9481,0.9889,4,no
+B - Top 3 variables,SVM,Optimizado,0.9735,0.9787,0.9388,0.9583,0.9704,0.9705,1,si
+B - Top 3 variables,Regresion Logistica,Optimizado,0.9471,0.9149,0.9348,0.9247,0.9481,0.992,4,no
+B - Top 3 variables,KNN,Optimizado,0.9578,0.9149,0.9348,0.9247,0.9481,0.9897,4,no

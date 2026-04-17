@@ -1,0 +1,4 @@
+﻿Modelo,Escenario,Accuracy (mean+/-std),Precision (mean+/-std),Recall (mean+/-std),F1 (mean+/-std),AUC (mean+/-std)
+Regresion Logistica,B - Top 3 variables,0.9648 +/- 0.0271,0.9648 +/- 0.0272,0.9583 +/- 0.0305,0.9647 +/- 0.0272,0.9912 +/- 0.0112
+KNN (k=5),B - Top 3 variables,0.9667 +/- 0.0239,0.9671 +/- 0.0234,0.9634 +/- 0.0246,0.9667 +/- 0.0237,0.9823 +/- 0.0167
+SVM (RBF),B - Top 3 variables,0.9574 +/- 0.0319,0.9577 +/- 0.0316,0.9538 +/- 0.0339,0.9575 +/- 0.0317,0.9880 +/- 0.0122

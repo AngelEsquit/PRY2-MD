@@ -1,0 +1,5 @@
+﻿Escenario,Tipo,TN,FP,FN,TP
+A - Todas las variables,Base,85,3,2,45
+A - Todas las variables,Optimizado,83,5,0,47
+B - Top 3 variables,Base,85,3,4,43
+B - Top 3 variables,Optimizado,85,3,1,46

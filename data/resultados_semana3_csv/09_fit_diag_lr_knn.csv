@@ -1,0 +1,5 @@
+﻿Escenario,Modelo,Recall_train_CV_best,Recall_valid_CV_best,Gap_train_valid,Diagnostico_ajuste
+A - Todas las variables,Regresion Logistica,0.9841,0.9789,0.0052,estable
+A - Todas las variables,KNN,0.9643,0.9632,0.0011,estable
+B - Top 3 variables,Regresion Logistica,0.9471,0.9471,0.0,estable
+B - Top 3 variables,KNN,0.963,0.9578,0.0052,estable

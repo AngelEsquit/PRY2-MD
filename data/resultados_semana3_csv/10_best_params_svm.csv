@@ -1,0 +1,3 @@
+﻿Escenario,Modelo,Best Recall CV (maligna),Std Recall CV,Best Params
+A - Todas las variables,SVM,1.0,0.0,"{'model__C': 0.1, 'model__class_weight': None, 'model__gamma': 1, 'model__kernel': 'rbf', 'model__probability': True}"
+B - Top 3 variables,SVM,0.9735,0.0166,"{'model__C': 3, 'model__class_weight': 'balanced', 'model__gamma': 'scale', 'model__kernel': 'rbf', 'model__probability': True}"

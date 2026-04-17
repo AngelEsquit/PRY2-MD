@@ -1,0 +1,7 @@
+﻿Escenario,Modelo,Best Recall CV (maligna),Std Recall CV,Best Params
+A - Todas las variables,Regresion Logistica,0.9789,0.0421,"{'model__C': 0.1, 'model__class_weight': 'balanced', 'model__max_iter': 2000, 'model__penalty': 'l1', 'model__solver': 'liblinear'}"
+A - Todas las variables,KNN,0.9632,0.0488,"{'model__metric': 'euclidean', 'model__n_neighbors': 9, 'model__weights': 'uniform'}"
+A - Todas las variables,SVM,1.0,0.0,"{'model__C': 0.1, 'model__class_weight': None, 'model__gamma': 1, 'model__kernel': 'rbf', 'model__probability': True}"
+B - Top 3 variables,Regresion Logistica,0.9471,0.0333,"{'model__C': 3, 'model__class_weight': 'balanced', 'model__max_iter': 2000, 'model__penalty': 'l2', 'model__solver': 'lbfgs'}"
+B - Top 3 variables,KNN,0.9578,0.0268,"{'model__metric': 'euclidean', 'model__n_neighbors': 7, 'model__weights': 'uniform'}"
+B - Top 3 variables,SVM,0.9735,0.0166,"{'model__C': 3, 'model__class_weight': 'balanced', 'model__gamma': 'scale', 'model__kernel': 'rbf', 'model__probability': True}"

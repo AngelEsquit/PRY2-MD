@@ -1,0 +1,5 @@
+﻿Escenario,Tipo,Recall_train_CV,Recall_valid_CV,Gap_train_valid,Diagnostico_ajuste
+A - Todas las variables,Base,0.9749,0.9632,0.0117,estable
+A - Todas las variables,Optimizado,1.0,1.0,0.0,estable
+B - Top 3 variables,Base,0.9458,0.9418,0.004,estable
+B - Top 3 variables,Optimizado,0.9762,0.9735,0.0026,estable
