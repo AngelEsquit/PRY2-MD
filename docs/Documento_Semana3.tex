@@ -1,0 +1,354 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[spanish,es-noquoting]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{hyperref}
+
+\geometry{margin=2.5cm}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\title{Proyecto 2 - Data Mining\\\large Semana 3: Validacion, Optimizacion y Seleccion Final de Modelo}
+\author{Javier Espana \and Angel Esquit \and Roberto Barreda \and Diego Lopez}
+\date{17 abril 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+Universidad del Valle de Guatemala\\
+Curso: Data Mining\\
+Dataset: Wisconsin Breast Cancer Dataset\\
+Objetivo de clasificacion: \texttt{Class} (2 = Benigno, 4 = Maligno)
+\end{center}
+
+\hrule
+
+\section{Objetivo de Semana 3}
+
+El objetivo de esta fase fue cerrar el ciclo experimental de modelado con una comparacion formal y trazable entre modelos de clasificacion binaria, usando el mismo protocolo para todos los candidatos. Esta semana se enfoco en cuatro frentes:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item Validacion experimental robusta y comparable.
+\item Afinacion de hiperparametros para Regresion Logistica (LR), KNN y SVM-RBF.
+\item Analisis de ajuste (sobreajuste/subajuste) y consistencia CV vs test.
+\item Seleccion final del mejor modelo con justificacion tecnica explicita.
+\end{enumerate}
+
+La prioridad operativa del problema es clinica: minimizar falsos negativos de casos malignos. Por eso, durante el tuning la metrica objetivo principal fue el recall de la clase positiva (\texttt{Class = 4}).
+
+\section{Datos, split y diseno experimental}
+
+\subsection{Dataset final conservado}
+
+Se trabajo con \texttt{data/Datos\_modelado.csv} como dataset oficial de modelado, heredado de Semana 2 y mantenido sin cambios estructurales para preservar comparabilidad.
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Filas esperadas: 675
+\item Columnas esperadas: 10
+\item Target: \texttt{Class}
+\end{itemize}
+
+\subsection{Split heredado de Semana 2 (conservado)}
+
+Se mantuvo el mismo split de referencia para Semana 3:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Train/Test = 80/20
+\item Estratificado por clase
+\item \texttt{random\_state = 42}
+\end{itemize}
+
+La proporcion de clases se conserva de forma consistente.
+
+\begin{table}[H]
+\centering
+\caption{Distribucion de clases en total, train y test}
+\begin{tabular}{lccc}
+\toprule
+Clase & Total & Train & Test \\
+\midrule
+Benigna (2) & 0.6504 & 0.6500 & 0.6519 \\
+Maligna (4) & 0.3496 & 0.3500 & 0.3481 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Esta consistencia confirma que el split no introduce sesgo de distribucion y que la comparacion entre modelos no queda afectada por variaciones en la composicion de clases.
+
+\subsection{Escenarios de variables}
+
+Se evaluaron dos escenarios para mantener comparacion formal:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Escenario A: todas las variables.
+\item Escenario B: top 3 variables (\texttt{Bare Nuclei}, \texttt{Uniformity of Cell Size}, \texttt{Uniformity of Cell Shape}).
+\end{itemize}
+
+\subsection{Esquema de validacion aplicado}
+
+\begin{itemize}[leftmargin=1.2cm]
+\item \texttt{StratifiedKFold(n\_splits=5, shuffle=True, random\_state=42)}
+\item Mismas metricas para todos los modelos base: accuracy, precision ponderada, recall macro, F1 ponderado y AUC OVR ponderado.
+\item Mismo pipeline de preprocesamiento y entrenamiento por modelo.
+\end{itemize}
+
+Este esquema asegura condiciones experimentales identicas para LR, KNN y SVM.
+
+\subsection{Control de fuga de informacion}
+
+Se aplicaron reglas anti-leakage en todo el flujo:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item Escalado dentro de \texttt{Pipeline}.
+\item Cada fold ajusta transformaciones solo con datos del fold de entrenamiento.
+\item El test set no participa en tuning ni seleccion de hiperparametros.
+\item La evaluacion en test se usa solo como verificacion final de generalizacion.
+\end{enumerate}
+
+\section{Validacion base (pre-tuning)}
+
+Antes de optimizar, se corrio una validacion base de los tres modelos en ambos escenarios.
+
+\subsection{CV base por escenario (resumen)}
+
+\begin{table}[H]
+\centering
+\caption{Escenario A (todas las variables): desempeno base en CV}
+\begin{tabular}{lccc}
+\toprule
+Modelo base & Recall macro CV & F1 CV & AUC CV \\
+\midrule
+Regresion Logistica & 0.9664 & 0.9702 & 0.9941 \\
+KNN (k=5) & 0.9636 & 0.9684 & 0.9843 \\
+SVM (RBF) & 0.9617 & 0.9613 & 0.9898 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption{Escenario B (top 3 variables): desempeno base en CV}
+\begin{tabular}{lccc}
+\toprule
+Modelo base & Recall macro CV & F1 CV & AUC CV \\
+\midrule
+Regresion Logistica & 0.9583 & 0.9647 & 0.9912 \\
+KNN (k=5) & 0.9634 & 0.9667 & 0.9823 \\
+SVM (RBF) & 0.9538 & 0.9575 & 0.9880 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Coherencia CV vs test}
+
+Los gaps de generalizacion en fase base se mantuvieron acotados, sin rupturas criticas entre validacion y prueba. Esto habilito una etapa de tuning confiable sobre el mismo protocolo.
+
+\section{Optimizacion de LR y KNN}
+
+\subsection{Enfoque}
+
+Para LR y KNN se ejecuto \texttt{GridSearchCV} en ambos escenarios, con metrica objetivo:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Recall de clase maligna (\texttt{pos\_label=4})
+\end{itemize}
+
+Hiperparametros afinados:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item LR: \texttt{solver}, \texttt{penalty}, \texttt{C}, \texttt{class\_weight}, \texttt{max\_iter}
+\item KNN: \texttt{n\_neighbors}, \texttt{weights}, \texttt{metric} (incluyendo \texttt{minkowski} con \texttt{p})
+\end{itemize}
+
+\subsection{Mejores resultados de tuning}
+
+\begin{table}[H]
+\centering
+\caption{Mejores recalls de CV para LR y KNN}
+\begin{tabular}{llcc}
+\toprule
+Escenario & Modelo & Best Recall CV (maligna) & Desv. est. \\
+\midrule
+A & Regresion Logistica & 0.9789 & 0.0421 \\
+A & KNN & 0.9632 & 0.0488 \\
+B & Regresion Logistica & 0.9471 & 0.0333 \\
+B & KNN & 0.9578 & 0.0268 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Base vs optimizado (hallazgo clave)}
+
+\begin{itemize}[leftmargin=1.2cm]
+\item LR si muestra mejora real en recall de maligna y reduccion de FN, especialmente en ambos escenarios.
+\item KNN no muestra mejora consistente; en Escenario A incluso cae en recall de test y aumenta FN.
+\end{itemize}
+
+Conclusiones de Persona 2 (validadas):
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item LR optimizada queda lista y competitiva para comparacion final.
+\item KNN optimizado no desplaza claramente a su baseline.
+\end{enumerate}
+
+\section{Optimizacion de SVM y analisis de ajuste}
+
+\subsection{Enfoque}
+
+Se tomo SVM con kernel RBF como base fuerte de Semana 2 y se optimizaron:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item \texttt{C}
+\item \texttt{gamma}
+\item \texttt{class\_weight}
+\end{itemize}
+
+Tambien con \texttt{GridSearchCV} y la misma metrica objetivo de recall de maligna.
+
+\subsection{Resultado central de SVM}
+
+\begin{table}[H]
+\centering
+\caption{SVM base vs optimizado por escenario}
+\begin{tabular}{llccc}
+\toprule
+Escenario & Tipo & Recall CV maligna & Recall test maligna & FN test \\
+\midrule
+A & Base & 0.9632 & 0.9574 & 2 \\
+A & Optimizado & 1.0000 & 1.0000 & 0 \\
+B & Base & 0.9418 & 0.9149 & 4 \\
+B & Optimizado & 0.9735 & 0.9787 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Sobreajuste/subajuste y sesgo-varianza}
+
+En los modelos optimizados, los gaps train-valid son pequenos y clasificados como estables:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item SVM A optimizado: gap = 0.0000
+\item SVM B optimizado: gap = 0.0026
+\item LR y KNN optimizados: gaps bajos en general
+\end{itemize}
+
+No se observa sobreajuste clasico fuerte. El trade-off dominante en SVM A optimizado es diferente:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Mejora extrema en sensibilidad (recall 1.0000, FN = 0)
+\item Reduccion de precision y AUC frente a LR
+\end{itemize}
+
+Interpretacion tecnica:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Se reduce sesgo hacia la clase positiva (menos errores de omision de malignos).
+\item Se acepta mayor costo de falsos positivos relativos.
+\end{itemize}
+
+Para el contexto del problema, este trade-off es tecnicamente razonable y defendible.
+
+\section{Comparacion final de modelos optimizados}
+
+La comparacion formal final se realizo sobre los seis candidatos optimizados (3 modelos x 2 escenarios), con foco en \texttt{Recall\_Test\_maligna}, \texttt{FN\_Test}, estabilidad CV$\rightarrow$Test y trade-offs.
+
+\subsection{Tabla comparativa final (optimizados)}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Comparacion final de modelos optimizados}
+\begin{tabular}{llcccccc}
+\toprule
+Esc. & Modelo & Recall CV & Recall test & Precision test & AUC test & FN & Sostiene \\
+\midrule
+A & SVM & 1.0000 & 1.0000 & 0.9038 & 0.9744 & 0 & si \\
+A & Regresion Logistica & 0.9789 & 0.9574 & 0.9375 & 0.9944 & 2 & si \\
+A & KNN & 0.9632 & 0.9149 & 0.9348 & 0.9889 & 4 & no \\
+B & SVM & 0.9735 & 0.9787 & 0.9388 & 0.9705 & 1 & si \\
+B & Regresion Logistica & 0.9471 & 0.9149 & 0.9348 & 0.9920 & 4 & no \\
+B & KNN & 0.9578 & 0.9149 & 0.9348 & 0.9897 & 4 & no \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\subsection{Lectura tecnica}
+
+\begin{itemize}[leftmargin=1.2cm]
+\item El mejor desempeno en sensibilidad y FN lo logra SVM optimizado en Escenario A.
+\item El segundo mejor candidato por objetivo clinico es SVM optimizado en Escenario B.
+\item LR optimizada en Escenario A es fuerte en AUC y balance precision/recall, pero no supera a SVM A en FN.
+\item KNN no queda como candidato final por falta de mejora robusta.
+\end{itemize}
+
+\section{Modelo final seleccionado y justificacion}
+
+\subsection{Seleccion final}
+
+\textbf{Modelo final de Semana 3: SVM optimizado (kernel RBF) en Escenario A (todas las variables).}
+
+\subsection{Justificacion tecnica}
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item \texttt{Recall\_Test\_maligna = 1.0000} (maximo posible).
+\item \texttt{FN\_Test = 0}, criterio clinico dominante.
+\item La mejora en validacion se sostiene en test (\texttt{Sostiene\_en\_test = si}).
+\item Sin evidencia de sobreajuste fuerte en el analisis train-valid.
+\end{enumerate}
+
+\subsection{Trade-offs explicitos}
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Frente a LR optimizada, SVM A sacrifica precision y AUC.
+\item Se prioriza seguridad diagnostica (menos omisiones de malignos) sobre pureza probabilistica.
+\item Esta decision es consistente con el objetivo del proyecto.
+\end{itemize}
+
+\section{Verificacion de consistencia (notebook vs resultados vs documento)}
+
+Se verifico coherencia entre:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Notebook: \texttt{notebook/Validacion y Diseno Experimental.ipynb}
+\item Tablas exportadas: \texttt{data/resultados\_semana3\_csv/}
+\item Documento final: este archivo en formato LaTeX
+\end{itemize}
+
+Archivos clave usados para la conclusion:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item \texttt{16\_compare\_all.csv} (comparacion base vs optimizado)
+\item \texttt{17\_delta\_all.csv} (mejoras y trade-offs)
+\item \texttt{18\_fit\_diag\_all.csv} (analisis de ajuste)
+\item \texttt{19\_optimized\_only.csv} (ranking final de candidatos optimizados)
+\end{itemize}
+
+No se detectaron inconsistencias numericas relevantes entre fuentes para la seleccion final.
+
+\section{Conclusiones finales de Semana 3}
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item El diseno experimental se mantuvo estable y comparable de inicio a fin.
+\item La validacion estratificada y el control de fuga fueron adecuados.
+\item LR optimizada mejora y queda como alternativa fuerte.
+\item KNN no muestra mejora suficientemente consistente tras tuning.
+\item SVM optimizado domina el objetivo principal (sensibilidad de clase maligna) y reduce al minimo los errores criticos.
+\item La seleccion final tecnicamente justificada es \textbf{SVM optimizado en Escenario A}.
+\end{enumerate}
+
+Con esto queda cerrada la exigencia de Semana 3: comparacion formal, seleccion de modelo, justificacion de sesgo/varianza y trade-offs, y consistencia entre notebook y documento.
+
+\end{document}

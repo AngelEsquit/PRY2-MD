@@ -11,9 +11,8 @@ Este avance consolida lo realizado en:
 - Analisis integrado de sobreajuste/subajuste y comportamiento sesgo-varianza.
 
 Todavia falta:
-- Definir la seleccion final de modelo de Semana 3.
-- Redactar el documento formal de 3-4 paginas.
-- Revisar consistencia final entre notebook y documento.
+- No hay tareas tecnicas pendientes de Semana 3.
+- Queda solo entrega y presentacion segun calendario del curso.
 
 ## Notebook de referencia
 - notebook/Validacion y Diseno Experimental.ipynb
@@ -97,11 +96,27 @@ Para mantener rigor y comparabilidad en la etapa final:
 3. Reportar la comparacion final usando las tablas integradas del notebook.
 4. Justificar la seleccion final con recall de malignos, falsos negativos, estabilidad y trade-offs, no solo con accuracy.
 
+## Cierre final de Semana 3
+Seleccion final definida en notebook y documento:
+- Modelo final: SVM optimizado (kernel RBF) en Escenario A (todas las variables).
+- Justificacion principal: Recall_Test_maligna = 1.0000 y FN_Test = 0.
+- Evidencia de estabilidad: Sostiene en test y gap train-valid sin senales fuertes de sobreajuste.
+- Trade-off aceptado: menor precision/AUC frente a LR, a cambio de mayor sensibilidad clinica.
+
+Documento final generado en:
+- docs/Documento_Semana3.tex
+- docs/Documento_Semana3.pdf
+
+Tablas de respaldo usadas para la seleccion:
+- data/resultados_semana3_csv/16_compare_all.csv
+- data/resultados_semana3_csv/18_fit_diag_all.csv
+- data/resultados_semana3_csv/19_optimized_only.csv
+
 ## Que necesita la siguiente etapa para cerrar Semana 3
-1. Tomar `df_optimized_only` como base para la comparacion final formal.
-2. Definir el modelo final y justificar si se privilegia sensibilidad clinica (SVM) o separacion probabilistica mas balanceada (LR).
-3. Redactar el documento final de 3-4 paginas.
-4. Verificar consistencia entre las tablas del notebook y el texto final.
+1. Preparar entrega final del curso usando `docs/Documento_Semana3.tex` y `docs/Documento_Semana3.pdf`.
+2. Usar `data/resultados_semana3_csv/` como anexo tecnico para respaldo de tablas.
+3. Mantener sin cambios el split y el protocolo si se requiere re-ejecucion para auditoria.
+4. Presentar la justificacion del modelo final (SVM-A optimizado) con sus trade-offs.
 
 ## Checklist rapido de continuidad
 - [x] Abrir notebook/Validacion y Diseno Experimental.ipynb
@@ -109,5 +124,5 @@ Para mantener rigor y comparabilidad en la etapa final:
 - [x] Implementar tuning de LR y KNN
 - [x] Implementar tuning de SVM con el mismo protocolo
 - [x] Consolidar comparacion integrada de modelos optimizados
-- [ ] Seleccionar el modelo final
-- [ ] Redactar el documento final de Semana 3
+- [x] Seleccionar el modelo final
+- [x] Redactar el documento final de Semana 3
