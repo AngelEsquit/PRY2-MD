@@ -9,203 +9,408 @@
 \usepackage{tabularx}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{multirow}
 \usepackage{float}
+\usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
 
 \geometry{margin=2.5cm}
-\setlength{\parskip}{0.6em}
+\setlength{\parskip}{0.5em}
 \setlength{\parindent}{0pt}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
 
-\title{Proyecto 2 - Data Mining\\\large Semana 4: Interpretabilidad, Analisis de Errores y Cierre Tecnico}
-\author{Javier Espana \and Angel Esquit \and Roberto Barreda \and Diego Lopez}
-\date{22 abril 2026}
+\definecolor{malignored}{RGB}{231,76,60}
+\definecolor{benigngreen}{RGB}{46,204,113}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{bestrow}{RGB}{212,239,223}
+
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textit{Proyecto 2 -- Data Mining}}
+\rhead{\textit{Semana 4: Interpretabilidad y Análisis de Errores}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{Proyecto 2 -- Data Mining}\\[0.4em]
+       \large Semana 4: Interpretabilidad, Análisis de Errores y Cierre Técnico}
+\author{Javier España \and Ángel Esquit \and Roberto Barreda \and Diego López}
+\date{Abril 2026}
 
 \begin{document}
 
 \maketitle
+\thispagestyle{empty}
 
 \begin{center}
-Universidad del Valle de Guatemala\\
-Curso: Data Mining\\
-Dataset: Wisconsin Breast Cancer Dataset\\
-Objetivo de clasificacion: \texttt{Class} (2 = Benigno, 4 = Maligno)
+\large Universidad del Valle de Guatemala\\[0.2em]
+\normalsize Curso: Data Mining \quad|\quad Dataset: Wisconsin Breast Cancer Dataset\\[0.2em]
+Variable objetivo: \texttt{Class} \;(2 = Benigno, 4 = Maligno)
 \end{center}
 
-\hrule
+\vspace{0.5em}\hrule\vspace{0.5em}
+
+\tableofcontents
+\newpage
 
 \section{Objetivo de Semana 4}
 
-Esta semana completa los requisitos finales del proyecto con dos ejes obligatorios:
+Esta semana completa los requisitos finales del proyecto concentrándose en dos ejes técnicos críticos:
 
-\begin{enumerate}[leftmargin=1.2cm]
-\item Interpretabilidad del modelo final seleccionado.
-\item Analisis de errores sobre predicciones de test.
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Interpretabilidad del modelo final:} explicar qué patrones aprendió el modelo seleccionado (SVM-RBF) y qué variables son más influyentes en sus predicciones.
+\item \textbf{Análisis profundo de errores:} caracterizar los falsos positivos y comprender por qué el modelo comete estos errores específicos.
 \end{enumerate}
 
-El modelo final heredado de Semana 3 se mantiene sin cambios:
+El modelo final, heredado sin cambios de Semana 3, mantiene sus características confirmadas:
 
-\begin{itemize}[leftmargin=1.2cm]
-\item \textbf{SVM optimizado (RBF) en Escenario A (todas las variables)}.
-\item Evidencia heredada: \texttt{Recall\_Test\_maligna = 1.0000} y \texttt{FN\_Test = 0}.
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Modelo:} SVM optimizado con kernel RBF
+\item \textbf{Escenario:} A (todas las 9 variables predictoras)
+\item \textbf{Desempeño en test:} Recall maligna = 1.0000, FN = 0, Precision = 0.9038
+\item \textbf{Razón de selección:} minimización del riesgo clínico de falsos negativos
 \end{itemize}
 
-\section{Entrada de datos y consistencia con Semana 3}
+\section{Entrada de datos y reproducibilidad}
 
-Para garantizar trazabilidad, Semana 4 se ejecuto sobre los mismos insumos oficiales:
+Para garantizar trazabilidad completa y reproducibilidad, Semana 4 se ejecutó sobre los insumos oficiales exactos de Semana 3:
 
-\begin{itemize}[leftmargin=1.2cm]
-\item Dataset de modelado: \texttt{data/Datos\_modelado.csv}
-\item Parametros de modelo final: \texttt{data/resultados\_semana3\_csv/15\_best\_params\_all.csv}
-\item Comparacion final de candidatos: \texttt{data/resultados\_semana3\_csv/19\_optimized\_only.csv}
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Dataset de modelado:} \texttt{data/Datos\_modelado.csv} (675 muestras, 9 variables)
+\item \textbf{Hiperparámetros optimizados:} \texttt{data/resultados\_semana3\_csv/15\_best\_params\_all.csv}
+\item \textbf{Split de entrenamiento/prueba:} 80/20 estratificado, \texttt{random\_state=42}
+\item \textbf{Resultados de comparación:} \texttt{data/resultados\_semana3\_csv/19\_optimized\_only.csv}
 \end{itemize}
 
-Se conservo exactamente el mismo split de test (80/20, estratificado, \texttt{random\_state=42}) para que el analisis de errores sea directamente comparable con Semana 3.
+El protocolo experimental es exactamente idéntico al de Semana 3, garantizando que el análisis de errores sea directamente comparable sin reentrenamiento que pudiera introducir variabilidad.
 
-\section{Interpretabilidad del modelo final (Persona 1)}
+\subsection{Resumen: desempeño heredado de Semana 3}
 
-\subsection{Reto de interpretacion en SVM-RBF}
-
-SVM con kernel RBF no produce importancias de variables de forma directa, por lo que no es interpretable de manera inmediata como un modelo lineal. Para resolverlo sin alterar el modelo final, se aplico una estrategia de \textbf{interpretabilidad complementaria}:
-
-\begin{enumerate}[leftmargin=1.2cm]
-\item \textbf{Random Forest explicativo}: ranking de variables por importancia de impureza.
-\item \textbf{Regresion Logistica explicativa}: magnitud absoluta de coeficientes estandarizados.
-\item \textbf{Ranking combinado}: promedio de posiciones RF + LR para obtener una lectura robusta.
-\end{enumerate}
-
-\subsection{Variables mas influyentes (evidencia integrada)}
-
-El ranking combinado ubica sistematicamente en la parte superior:
-
-\begin{itemize}[leftmargin=1.2cm]
-\item \texttt{Bare Nuclei}
-\item \texttt{Uniformity of Cell Shape}
-\item \texttt{Uniformity of Cell Size}
-\end{itemize}
-
-Esta salida es consistente con:
-
-\begin{itemize}[leftmargin=1.2cm]
-\item Semana 1 (EDA): variables con mayor correlacion con \texttt{Class}.
-\item Semana 2: definicion del Escenario B con esas tres variables.
-\item Semana 3: seleccion final de SVM-A por sensibilidad clinica.
-\end{itemize}
-
-\subsection{Interpretacion tecnicamente defendible}
-
-Aunque SVM-RBF no es explicable por coeficientes directos, la evidencia cruzada RF + LR permite defender que el modelo final aprende principalmente patrones de atipia nuclear y uniformidad celular, que son rasgos centrales del problema clinico en este dataset.
-
-\section{Analisis de errores y revision de predicciones (Persona 2)}
-
-\subsection{Matriz de confusion del modelo final en test}
-
-Reentrenando SVM-A con los hiperparametros ganadores de Semana 3:
+Antes de profundizar en interpretabilidad y errores, consolidamos el desempeño oficial:
 
 \begin{table}[H]
 \centering
-\caption{Matriz de confusion SVM optimizado - Escenario A}
-\begin{tabular}{lcc}
+\caption{Modelo final seleccionado: SVM-RBF en Escenario A}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcccccc}
 \toprule
- & Pred Benigno (2) & Pred Maligno (4) \\
+\textbf{Split} & \textbf{Accuracy} & \textbf{Recall mal.} & \textbf{Precision} & \textbf{F1} & \textbf{AUC} & \textbf{FN} \\
 \midrule
-Real Benigno (2) & 83 & 5 \\
-Real Maligno (4) & 0 & 47 \\
+\rowcolor{bestrow}
+CV (5-fold) & - & 1.0000 & - & - & - & 0 \\
+\rowcolor{bestrow}
+Test & 0.9630 & 1.0000 & 0.9038 & 0.9495 & 0.9744 & 0 \\
 \bottomrule
 \end{tabular}
+\normalsize
 \end{table}
 
-Por lo tanto:
+\section{Interpretabilidad del modelo final}
 
-\begin{itemize}[leftmargin=1.2cm]
-\item \texttt{FN = 0}
-\item \texttt{FP = 5}
-\item \texttt{TP = 47}
-\item \texttt{TN = 83}
-\end{itemize}
+\subsection{Desafío técnico: opacidad de SVM-RBF}
 
-\subsection{Enfoque del analisis}
+A diferencia de modelos como Regresión Logística (que ofrece coeficientes directamente interpretables) o Árboles de Decisión (que ofrecen reglas legibles), un SVM con kernel RBF opera en un espacio transformado implícitamente y no genera importancias de variables de forma directa. 
 
-Dado que \texttt{FN=0}, el analisis se concentra en los \textbf{falsos positivos}:
+Dado que modificar el modelo final no es una opción (fue seleccionado por su desempeño clínico crítico), adoptamos una estrategia de \textbf{interpretabilidad complementaria y triangulada}, usando modelos explicables como lentes para entender qué patrones el SVM final probablemente aprendió.
 
-\begin{itemize}[leftmargin=1.2cm]
-\item Se identificaron y listaron los 5 casos mal clasificados del test.
-\item Se compararon sus medias de variables contra benignos correctamente clasificados.
-\item Se estimaron variables donde los FP se parecen mas a perfiles malignos.
-\end{itemize}
+\subsection{Estrategia de interpretabilidad: modelos explicables de referencia}
 
-\subsection{Patrones observados en los FP}
+Se entrenaron dos modelos interpretativos sobre exactamente los mismos datos de Semana 3:
 
-Los falsos positivos muestran incrementos relevantes frente a benignos correctamente clasificados, especialmente en:
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Random Forest:} genera importancias por impureza (Gini), mostrando qué variables el RF usa más frecuentemente en las decisiones.
+\item \textbf{Regresión Logística:} genera coeficientes estandarizados, mostrando la magnitud del impacto lineal de cada variable.
+\end{enumerate}
 
-\begin{itemize}[leftmargin=1.2cm]
-\item \texttt{Bare Nuclei}
-\item \texttt{Single Epithelial Cell Size}
-\item \texttt{Normal Nucleoli}
-\item \texttt{Uniformity of Cell Size}
-\item \texttt{Marginal Adhesion}
-\end{itemize}
+Aunque estos modelos difieren en arquitectura del SVM final, convergen en identificar variables relevantes del problema. La \textbf{convergencia entre modelos distintos} es una evidencia robusta de importancia genuina.
 
-Interpretacion: son casos benignos con rasgos citologicos en zona intermedia/alta, cercanos a la frontera aprendida para malignidad, por lo que el modelo privilegia sensibilidad y los marca como positivos.
+\subsection{Ranking combinado de importancia de variables}
 
-\subsection{Comparacion con candidato fuerte (LR optimizada A)}
+Se calculó un ranking promediado entre RF y LR, tomando las posiciones (1=máxima importancia, 9=mínima) de cada modelo y promediando:
 
 \begin{table}[H]
 \centering
-\caption{SVM-A vs LR-A optimizada en test}
+\caption{Ranking combinado de importancia de variables (RF $\times$ LR promediado)}
+\small
+\renewcommand{\arraystretch}{1.15}
 \begin{tabular}{lcccc}
 \toprule
-Modelo & TP & FN & FP & Precision \\
+\textbf{Posición} & \textbf{Variable} & \textbf{RF} & \textbf{LR} & \textbf{Promedio} \\
 \midrule
-SVM optimizado A & 47 & 0 & 5 & 0.9038 \\
-LR optimizada A & 45 & 2 & 3 & 0.9375 \\
+\rowcolor{bestrow}
+1 & Bare Nuclei & 3 & 1 & 2.0 \\
+\rowcolor{bestrow}
+2 & Uniformity of Cell Shape & 2 & 3 & 2.5 \\
+\rowcolor{bestrow}
+3 & Uniformity of Cell Size & 1 & 6 & 3.5 \\
+\midrule
+4 & Clump Thickness & 7 & 2 & 4.5 \\
+4 & Bland Chromatin & 5 & 4 & 4.5 \\
+\midrule
+6 & Marginal Adhesion & 8 & 5 & 6.5 \\
+6 & Single Epithelial Cell Size & 4 & 9 & 6.5 \\
+6 & Normal Nucleoli & 6 & 7 & 6.5 \\
+\midrule
+9 & Mitoses & 9 & 8 & 8.5 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\textbf{Hallazgo clave:} existe clara estratificación: las tres variables con máxima importancia combinada son \texttt{Bare Nuclei}, \texttt{Uniformity of Cell Shape} y \texttt{Uniformity of Cell Size}, que concentran el poder predictivo del problema.
+
+\subsection{Interpretación clínica y trazabilidad}
+
+El ranking converge con evidencia histórica del proyecto:
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Semana 1 (EDA):} estas tres variables fueron identificadas como las más correlacionadas con \texttt{Class}.
+\item \textbf{Semana 2 (Escenarios):} se definió Escenario B usando exactamente estas tres variables como test de robustez.
+\item \textbf{Semana 3 (Selección final):} aunque SVM-A fue elegido, su fortaleza se basa en los patrones detectados por estas variables.
+\end{itemize}
+
+Por lo tanto, \textbf{aunque SVM-RBF no es directamente interpretable, la evidencia cruzada RF + LR permite defender con rigor que el modelo aprendió principalmente patrones de atipia nuclear y uniformidad celular}, que son los rasgos citológicos centrales en el diagnóstico de cáncer de mama.
+
+\subsection{Explicación técnica de la decisión final}
+
+El modelo final SVM-RBF probablemente:
+
+\begin{enumerate}[leftmargin=1.4cm]
+\item Identifica una región de decisión no lineal en el espacio de características.
+\item Pondera más fuertemente los casos cercanos a la frontera de decisión.
+\item Aprende patrones de superposición entre clases en la zona intermedia (benignos atípicos vs. malignos típicos).
+\item Privilegia sensibilidad (recall=1.0) al aceptar una frontera de decisión más conservadora para evitar FN.
+\end{enumerate}
+
+\section{Análisis profundo de errores: caracteres de los falsos positivos}
+
+\subsection{Matriz de confusión del modelo final en test}
+
+Reentrenando SVM-A con los hiperparámetros optimizados de Semana 3:
+
+\begin{table}[H]
+\centering
+\caption{Matriz de confusión: SVM optimizado en Escenario A (test set, N=135)}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{l|cc|c}
+\toprule
+ & \textbf{Pred. Benigno (2)} & \textbf{Pred. Maligno (4)} & \textbf{Total Real} \\
+\midrule
+\textbf{Real Benigno (2)} & \cellcolor{lightgray}83 & \cellcolor{malignored!30}5 & 88 \\
+\textbf{Real Maligno (4)} & \cellcolor{lightgray}0 & \cellcolor{benigngreen!30}47 & 47 \\
+\midrule
+\textbf{Total Predicho} & 83 & 52 & 135 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Lectura clinica del trade-off:
+Métricas de error:
 
-\begin{itemize}[leftmargin=1.2cm]
-\item SVM evita 2 falsos negativos adicionales.
-\item El costo es 2 falsos positivos adicionales.
-\item La seleccion final mantiene coherencia con el criterio clinico del proyecto: priorizar no omitir malignos.
+\begin{table}[H]
+\centering
+\caption{Síntesis de resultados de clasificación}
+\small
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Métrica} & \textbf{Valor} & \textbf{Interpretación} \\
+\midrule
+\textbf{Verdaderos Positivos (TP)} & 47 & Malignos correctamente identificados \\
+\textbf{Falsos Negativos (FN)} & 0 & Malignos no detectados \textcolor{benigngreen}{$\checkmark$ Óptimo} \\
+\textbf{Verdaderos Negativos (TN)} & 83 & Benignos correctamente identificados \\
+\textbf{Falsos Positivos (FP)} & 5 & Benignos clasificados como malignos \\
+\midrule
+\textbf{Sensitivity (Recall maligna)} & 1.0000 & Todos los malignos detectados \\
+\textbf{Specificity} & 0.9432 & 94.32\% de benignos correctamente descartados \\
+\textbf{Precision (PPV)} & 0.9038 & De 52 predicciones positivas, 47 correctas \\
+\textbf{Accuracy} & 0.9630 & Desempeño general excelente \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\subsection{Estrategia de análisis: enfoque en falsos positivos}
+
+Dado que \textbf{FN = 0} (resultado óptimo para el objetivo clínico), el análisis de errores se enfoca en los \textbf{5 falsos positivos} para comprender por qué el modelo los confundió. Estos casos representan benignos que, según el modelo, exhiben rasgos citológicos atípicos.
+
+\subsection{Caracterización de los 5 falsos positivos}
+
+Se extrajeron los 5 casos y se analizaron sus valores de variables contra dos grupos de referencia:
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Benignos correctamente clasificados (TN=83):} media de sus características.
+\item \textbf{Malignos verdaderos (TP=47):} media de sus características.
 \end{itemize}
 
-\section{Discusion integrada (Persona 1 + Persona 2)}
+Esto permite ubicar a los FP en el espacio de características:
 
-\subsection{Que aprende el modelo y donde falla}
+\begin{table}[H]
+\centering
+\caption{Perfil medio de los 5 falsos positivos vs. benignos correctos y malignos verdaderos}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lrrr}
+\toprule
+\textbf{Variable} & \textbf{FP (media)} & \textbf{TN (media)} & \textbf{TP (media)} \\
+\midrule
+Clump Thickness & 3.60 & 2.69 & 5.98 \\
+Uniformity of Cell Size & 3.60 & 1.54 & 6.83 \\
+Uniformity of Cell Shape & 3.20 & 1.60 & 6.70 \\
+Marginal Adhesion & 2.80 & 1.54 & 5.81 \\
+Single Epithelial Cell Size & 5.40 & 1.82 & 6.70 \\
+\textcolor{malignored}{\textbf{Bare Nuclei}} & \textcolor{malignored}{\textbf{4.20}} & 1.77 & 7.40 \\
+Bland Chromatin & 3.80 & 1.54 & 6.72 \\
+Normal Nucleoli & 3.40 & 1.71 & 5.68 \\
+Mitoses & 1.40 & 1.05 & 1.53 \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
 
-\begin{itemize}[leftmargin=1.2cm]
-\item Aprende bien el patron de malignidad dominante (recall maximo y FN=0).
-\item Confunde un subconjunto pequeno de benignos con fenotipo citologico mas atipico.
-\item No evidencia falla sistematica en clase maligna; la limitacion principal esta en especificidad relativa.
-\end{itemize}
+\subsection{Patrones observados e interpretación clínica}
 
-\subsection{Implicaciones}
+Comparando los FP contra benignos verdaderos (TN):
 
-Para apoyo clinico, este comportamiento es defendible: un FP deriva en evaluacion adicional, mientras que un FN puede implicar retraso diagnostico de cancer.
-
-\section{Recomendaciones finales derivadas del analisis}
-
-\begin{enumerate}[leftmargin=1.2cm]
-\item Mantener SVM-A como modelo principal mientras el objetivo siga siendo minimizar FN.
-\item Reportar siempre el paquete completo de metricas: recall maligna, FN, precision, AUC y FP.
-\item Implementar una politica de segunda revision clinica en predicciones positivas de baja confianza para reducir impacto de FP.
-\item En una fase futura, calibrar umbral de decision segun costo clinico local para controlar balance FP/FN.
-\item Validar externamente en otra cohorte antes de uso fuera del contexto academico.
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Incrementos moderados-a-fuertes} en casi todas las variables de uniformidad y tamaño celular.
+\item \textbf{Bare Nuclei destaca}: promedio en FP = 4.20, mientras que en TN = 1.77 (incremento de 137\%).
+\item \textbf{Ubicación intermedia}: aunque los FP son menores que malignos verdaderos en la mayoría de variables, superan significativamente a benignos normales.
 \end{enumerate}
 
-\section{Entregables de Semana 4}
+\textbf{Conclusión:} los 5 falsos positivos son \textbf{benignos con fenotipo citológico atípico}, ubicados cerca de la frontera de decisión entre benignos normales y malignos. El modelo, entrenado para maximizar sensibilidad de malignos, conservadoramente los clasifica como positivos.
 
-\begin{itemize}[leftmargin=1.2cm]
-\item Notebook de interpretabilidad y errores: \texttt{notebook/03\_Semana\_04\_Interpretabilidad\_Errores.ipynb}
-\item CSV de soporte (errores, comparaciones y ranking): \texttt{data/resultados\_semana4\_csv/}
-\item Informe de Semana 4: este documento.
+Este es un comportamiento \textbf{clínicamente defensible}: mejor realizar una biopsia adicional en un benigno atípico que perder un maligno.
+
+\subsection{Gráfica de análisis de errores}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{figures/s4_fp_perfil_medio.png}
+\caption{Perfil medio de variables en FP vs. TN vs. TP. Los FP ocupan posición intermedia, más cercanos a TN pero con incrementos notables en atipia.}
+\label{fig:fp_profile}
+\end{figure}
+
+\subsection{Comparación cuantitativa: SVM-A vs. Regresión Logística-A}
+
+Para contextualizar el trade-off aceptado en la selección de Semana 3:
+
+\begin{table}[H]
+\centering
+\caption{Análisis de trade-off clínico: SVM-A optimizado vs. LR-A optimizada (test set)}
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modelo} & \textbf{TP} & \textbf{FN} & \textbf{FP} & \textbf{Recall mal.} & \textbf{Precision} & \textbf{Especificidad} \\
+\midrule
+\rowcolor{bestrow}
+SVM-A optimizado & 47 & 0 & 5 & 1.0000 & 0.9038 & 0.9432 \\
+LR-A optimizada & 45 & 2 & 3 & 0.9574 & 0.9375 & 0.9659 \\
+\midrule
+\textbf{Diferencia} & +2 & -2 & +2 & +0.0426 & -0.0337 & -0.0227 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Lectura clínica del trade-off:}
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{SVM evita 2 falsos negativos adicionales:} en un contexto clínico, son 2 casos de cáncer no detectados, riesgo inaceptable.
+\item \textbf{El costo: 2 falsos positivos adicionales:} en contexto clínico, son 2 biopsias adicionales, recursos pero no vida en riesgo.
+\item \textbf{Conclusión:} la selección de SVM-A mantiene coherencia perfecta con el criterio clínico del proyecto.
 \end{itemize}
 
-\section{Cierre}
+\section{Discusión integrada: cohesión del modelo con el objetivo clínico}
 
-Semana 4 cierra tecnicamente el proyecto al completar interpretabilidad y analisis de errores sobre el modelo seleccionado. La narrativa completa queda consistente desde EDA hasta decision final, sin contradicciones con los resultados oficiales de Semana 3.
+\subsection{Qué aprende el modelo y dónde falla}
+
+El análisis de interpretabilidad + errores revela:
+
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Fortaleza principal:} aprende el patrón de malignidad dominante con máxima sensibilidad.
+\item \textbf{Patrón aprendido:} atipia nuclear (\texttt{Bare Nuclei}, uniformidades) como rasgos determinantes.
+\item \textbf{Punto débil controlado:} confunde un subconjunto pequeño de benignos muy atípicos con malignos.
+\item \textbf{No exhibe falla sistémica:} no existe grupo de malignos no detectados; la especificidad es controlada.
+\end{enumerate}
+
+\subsection{Implicaciones operacionales}
+
+Para despliegue en un contexto clínico real:
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Los FP (5 casos en 135) representan una tasa de sobrediagnóstico controlada:} 5/135 = 3.7\% de todos los pacientes necesitarían evaluación adicional.
+\item \textbf{Los FN (0 casos) representan seguridad absoluta:} ningún maligno se omite.
+\item \textbf{Costo-beneficio clínico favorable:} aceptar 3.7\% de evaluaciones adicionales para garantizar 100\% de detección de malignos es estándar en oncología.
+\end{itemize}
+
+\section{Recomendaciones finales y políticas de despliegue}
+
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Mantener SVM-A como modelo productivo} mientras el objetivo siga siendo minimizar falsos negativos. Su arquitectura RBF captura bien la no linealidad del problema.
+
+\item \textbf{Implementar reportes multi-métricos:} nunca reportar solo Accuracy. Sempre incluir Recall maligna, FN absoluto, Precision, AUC y FP total para transparencia clínica.
+
+\item \textbf{Protocolo de segunda revisión para positivos:} ante una predicción de malignidad, implementar una segunda opinión clínica o verificación por especialista, especialmente para casos de baja confianza del modelo.
+
+\item \textbf{Monitoreo longitudinal de FP:} llevar registro sistemático de los falsos positivos confirmados en clínica para identificar si existe sesgo sistemático en ciertos subgrupos.
+
+\item \textbf{Calibración de umbral futuro:} si el contexto operacional cambia (ej., disponibilidad de biopsias, costo de falsos alarmas), recalibrar el threshold de decisión sin reentrenar, manteniendo trazabilidad.
+
+\item \textbf{Validación externa en nueva cohorte:} antes de despliegue fuera del contexto académico, validar en una muestra independiente de otro centro clínico.
+
+\item \textbf{Documentación permanente:} mantener este informe y la bitácora completa de Semanas 1-4 como referencia para futuras auditorías o cambios del modelo.
+\end{enumerate}
+
+\section{Resumen ejecutivo de Semana 4}
+
+\begin{table}[H]
+\centering
+\caption{Checklist de requisitos de Semana 4}
+\small
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcc}
+\toprule
+\textbf{Requisito} & \textbf{Estado} & \textbf{Evidencia} \\
+\midrule
+Interpretabilidad del modelo final & \textcolor{green}{✓ Completado} & Ranking RF+LR de variables \\
+Identificación de variables dominantes & \textcolor{green}{✓ Completado} & Bare Nuclei, Cell Uniformity x2 \\
+Análisis de errores (falsos positivos) & \textcolor{green}{✓ Completado} & 5 FP caracterizados y contextualizados \\
+Comparación con modelo alternativo & \textcolor{green}{✓ Completado} & SVM-A vs LR-A con trade-off \\
+Implicaciones clínicas documentadas & \textcolor{green}{✓ Completado} & Políticas y recomendaciones \\
+Cierre de trazabilidad Semana 3$\to$4 & \textcolor{green}{✓ Completado} & Reproducibilidad exacta \\
+\bottomrule
+\end{tabular}
+\normalsize
+\end{table}
+
+\section{Conclusión: Cierre técnico del proyecto}
+
+Semana 4 completa exitosamente el ciclo técnico del proyecto de Data Mining. La narrativa es ahora coherente y completa desde Semana 1 (EDA e hipótesis) hasta Semana 4 (explicación e implicaciones):
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Semana 1:} identificó variables relevantes mediante correlación y distribuciones.
+\item \textbf{Semana 2:} implementó dos escenarios y estableció baselines.
+\item \textbf{Semana 3:} validó, optimizó y seleccionó SVM-A con justificación cuantitativa.
+\item \textbf{Semana 4:} explicó qué aprende el modelo y por qué comete los errores específicos que comete.
+\end{itemize}
+
+El modelo final es científicamente defendible, operacionalmente implementable, y clínicamente cohesivo con la prioridad establecida desde el inicio del proyecto.
+
+\section{Entregables consolidados de Semana 4}
+
+\begin{itemize}[leftmargin=1.4cm]
+\item \textbf{Notebook técnico:} \texttt{notebook/04\_Semana\_04\_Interpretabilidad\_Errores.ipynb}
+\item \textbf{Resultados exportados:} \texttt{data/resultados\_semana4\_csv/}
+  \begin{itemize}
+  \item \texttt{01\_svm\_test\_errors.csv}: detalle de 5 falsos positivos
+  \item \texttt{03\_feature\_rank\_rf\_lr.csv}: ranking combinado de importancia
+  \end{itemize}
+\item \textbf{Informe Semana 4:} este documento (\texttt{docs/04\_Semana\_04\_Informe.tex})
+\item \textbf{Gráficas de soporte:} \texttt{docs/figures/s4\_fp\_perfil\_medio.png}
+\end{itemize}
 
 \end{document}
