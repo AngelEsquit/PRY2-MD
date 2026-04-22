@@ -1,0 +1,328 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[spanish,es-noquoting]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{geometry}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\usepackage{fancyhdr}
+
+\geometry{margin=2.5cm}
+\setlength{\parskip}{0.6em}
+\setlength{\parindent}{0pt}
+\hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
+
+\setlength{\headheight}{15pt}
+
+\pagestyle{fancy}
+\fancyhf{}
+\chead{\textbf{Universidad del Valle de Guatemala}}
+\rhead{Semestre I 2026}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{Proyecto \#2 -- Data Mining (PBL)}}
+\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{center}
+\Large \textbf{Semestre I del 2026}
+\end{center}
+
+\hrule
+\vspace{1cm}
+
+\section*{🎯 Objetivo general}
+
+Desarrollar un proyecto completo de minería de datos donde el estudiante:
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Analice un conjunto de datos real
+\item Formule un problema (sin que se le diga cuál)
+\item Construya, compare y evalúe modelos
+\item Justifique decisiones técnicas
+\item Comunique resultados de forma profesional
+\end{itemize}
+
+\section*{🗂️ Conjunto de datos}
+
+Se les entrega el archivo: \texttt{Datos.csv}
+
+\hrule
+\vspace{0.8cm}
+
+\section*{📅 Semana 1 -- Comprensión del problema + EDA}
+
+\subsection*{🎯 Objetivo}
+
+Que los estudiantes descubran:
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Qué representa el conjunto de datos
+\item Qué problema pueden resolver
+\item Primer análisis exploratorio
+\end{itemize}
+
+\subsection*{📌 Entregables}
+
+\textbf{1. Documento breve (3--5 páginas):}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Descripción del conjunto de datos (variables, tipos)
+\item Identificación del problema:
+\begin{itemize}[leftmargin=0.8cm]
+\item ¿Clasificación o regresión?
+\item ¿Variable objetivo?
+\end{itemize}
+\item Análisis exploratorio:
+\begin{itemize}[leftmargin=0.8cm]
+\item Distribuciones
+\item Correlaciones
+\item Datos atípicos (Outliers)
+\item Hipótesis iniciales
+\end{itemize}
+\end{itemize}
+
+\textbf{2. Notebook (EDA):}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Visualizaciones (mínimo 5)
+\item Comentarios interpretativos
+\end{itemize}
+
+\subsection*{📊 Rúbrica -- Semana 1 (20 pts)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Criterio} & \textbf{Puntos} \\
+\midrule
+Identificación correcta del problema & 5 \\
+Calidad del EDA (visualizaciones + interpretación) & 7 \\
+Comprensión de variables & 4 \\
+Claridad del documento & 4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hrule
+\vspace{0.8cm}
+
+\section*{📅 Semana 2 -- Preparación de datos + Modelos base}
+
+\subsection*{🎯 Objetivo}
+
+Construir primeros modelos sin optimización
+
+\subsection*{📌 Contenido esperado}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Limpieza de datos (si aplica)
+\item Selección de variables
+\item Train/Test split
+\item Modelos base (mínimo 3)
+\end{itemize}
+
+\subsection*{📌 Entregables}
+
+\textbf{1. Notebook:}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Preprocesamiento
+\item Modelos base
+\item Métricas:
+\begin{itemize}[leftmargin=0.8cm]
+\item Exactitud (Accuracy)
+\item Precisión, Recall, F1
+\item Matriz de confusión
+\end{itemize}
+\end{itemize}
+
+\textbf{2. Documento (2--3 páginas):}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Justificación de modelos elegidos
+\item Comparación inicial
+\end{itemize}
+
+\subsection*{📊 Rúbrica -- Semana 2 (25 pts)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Criterio} & \textbf{Puntos} \\
+\midrule
+Correcto preprocesamiento & 6 \\
+Implementación de modelos & 8 \\
+Uso de métricas adecuadas & 6 \\
+Interpretación de resultados & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hrule
+\vspace{0.8cm}
+
+\section*{📅 Semana 3 -- Mejora de modelos + Selección}
+
+\subsection*{🎯 Objetivo}
+
+Optimizar modelos y seleccionar el mejor
+
+\subsection*{📌 Contenido esperado}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Cross-validation
+\item Afinación de Hiperparámetros (Hyperparameter tuning)
+\item Comparación formal de modelos
+\item Sobre ajuste vs Sub ajuste (Overfitting vs underfitting)
+\end{itemize}
+
+\subsection*{📌 Entregables}
+
+\textbf{1. Notebook:}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Modelos optimizados
+\item Comparación clara
+\end{itemize}
+
+\textbf{2. Documento (3--4 páginas):}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Justificación del modelo final
+\item Discusión técnica:
+\begin{itemize}[leftmargin=0.8cm]
+\item Sesgo/varianza (Bias/variance)
+\item Trade-offs
+\end{itemize}
+\end{itemize}
+
+\subsection*{📊 Rúbrica -- Semana 3 (30 pts)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Criterio} & \textbf{Puntos} \\
+\midrule
+Uso correcto de validación & 8 \\
+Optimización de modelos & 8 \\
+Comparación rigurosa & 7 \\
+Justificación técnica & 7 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hrule
+\vspace{0.8cm}
+
+\section*{📅 Semana 4 -- Interpretación + Presentación final}
+
+\subsection*{🎯 Objetivo}
+
+Comunicar resultados como un científico de datos
+
+\subsection*{📌 Contenido esperado}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Interpretabilidad:
+\begin{itemize}[leftmargin=0.8cm]
+\item Importancia de características (Feature importance) (RF / árboles)
+\item Coeficientes (logística)
+\end{itemize}
+\item Análisis de errores
+\item Conclusiones
+\item Recomendaciones
+\end{itemize}
+
+\subsection*{📌 Entregables}
+
+\textbf{1. Informe final (8--12 páginas)}
+
+Debe incluir:
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Introducción
+\item Metodología
+\item Resultados
+\item Discusión
+\item Conclusiones
+\end{itemize}
+
+\textbf{2. Presentación (10--15 min)}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Problema
+\item Enfoque
+\item Modelo final
+\item Resultados clave
+\end{itemize}
+
+\subsection*{📊 Rúbrica -- Semana 4 (25 pts)}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Criterio} & \textbf{Puntos} \\
+\midrule
+Interpretación del modelo & 7 \\
+Calidad del informe & 8 \\
+Claridad de la presentación & 5 \\
+Rigor técnico & 5 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\hrule
+\vspace{1cm}
+
+\section*{🧮 Evaluación total}
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lc}
+\toprule
+\textbf{Semana} & \textbf{Puntos} \\
+\midrule
+Semana 1 & 20 \\
+Semana 2 & 25 \\
+Semana 3 & 30 \\
+Semana 4 & 25 \\
+\midrule
+\textbf{Total} & \textbf{100} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section*{🧩 Reglas del proyecto}
+
+\begin{itemize}[leftmargin=1.5cm]
+\item Trabajo en grupos de 4 estudiantes
+\item Uso libre de librerías (sklearn, pandas, etc.)
+\item \textbf{Prohibido copiar notebooks completos}
+\item Se evaluará \textbf{explicación, no solo código}
+\end{itemize}
+
+\vfill
+
+\begin{center}
+\textit{Semestre I del 2026}
+\end{center}
+
+\end{document}
