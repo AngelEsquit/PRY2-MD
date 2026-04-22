@@ -10,6 +10,7 @@
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{float}
+\usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{hyperref}
 
@@ -41,7 +42,7 @@ Durante la Semana 1 se trabajo en la comprension del problema y en el analisis e
 
 \section{Descripcion del Conjunto de Datos}
 
-El archivo \texttt{Datos.csv} contiene 682 registros de biopsias por aspiracion con aguja fina (FNA) de masas mamarias. Cada registro representa una muestra celular evaluada por un patologo, con 9 caracteristicas citologicas puntuadas de 1 a 10, mas una variable de clase que indica si el tumor es benigno o maligno.
+El archivo \texttt{Datos.csv} contiene 683 registros de biopsias por aspiracion con aguja fina (FNA) de masas mamarias. Cada registro representa una muestra celular evaluada por un patologo, con 9 caracteristicas citologicas puntuadas de 1 a 10, mas una variable de clase que indica si el tumor es benigno o maligno.
 
 Este dataset corresponde al \textit{Wisconsin Breast Cancer Dataset}, ampliamente utilizado en investigacion de aprendizaje automatico para clasificacion binaria en el ambito medico.
 
@@ -96,6 +97,14 @@ La deteccion temprana del cancer de mama es critica para mejorar la supervivenci
 
 Se observo un desbalance moderado de clases: 65\% benignos frente a 35\% malignos. El nivel de desbalance no es extremo, pero condiciona la forma de evaluar los modelos en semanas posteriores.
 
+\textbf{Decision metodologica:} para el modelado se usara \texttt{class\_weight='balanced'} como primera estrategia de compensacion. No se aplicara SMOTE en esta fase porque el ratio 1.86:1 no es severo y se prioriza no introducir muestras sinteticas en un dataset pequeno y clinicamente sensible.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.63\textwidth]{figures/s1_distribucion_clases.png}
+\caption{Distribucion de clases observada en el dataset base limpiado para analisis.}
+\end{figure}
+
 \subsection{Distribucion de caracteristicas por clase}
 
 Los histogramas mostraron que los casos benignos se concentran en valores bajos (1--3), mientras que los malignos presentan mayor dispersion y valores altos. La separacion visual fue especialmente fuerte en \texttt{Uniformity of Cell Size}, \texttt{Uniformity of Cell Shape} y \texttt{Bare Nuclei}.
@@ -111,6 +120,24 @@ Las variables con mayor correlacion con la clase fueron:
 \end{itemize}
 
 Tambien se detecto multicolinealidad alta entre \texttt{Uniformity of Cell Size} y \texttt{Uniformity of Cell Shape} ($r = 0.91$).
+
+\textbf{Decision metodologica:} esta colinealidad se abordara en Semana 2 de tres formas concretas: (i) regularizacion L2 en Regresion Logistica, (ii) comparacion entre un escenario completo y un escenario reducido de variables, y (iii) evaluacion de PCA como alternativa, priorizando interpretabilidad clinica antes de transformar el espacio de variables.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/s1_correlacion_heatmap.png}
+\caption{Matriz de correlacion entre variables citologicas y la variable objetivo.}
+\end{figure}
+
+\subsection{Visualizacion de variables clinicamente dominantes}
+
+La diferencia entre clases no solo es estadisticamente visible en la correlacion, sino tambien en la forma de las distribuciones. En la Figura siguiente, las tres variables mas influyentes muestran medianas claramente desplazadas entre benigno y maligno, con mayor dispersion en casos malignos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/s1_boxplot_variables_clave.png}
+\caption{Distribucion por clase para \texttt{Bare Nuclei}, \texttt{Uniformity of Cell Size} y \texttt{Uniformity of Cell Shape}.}
+\end{figure}
 
 \subsection{Deteccion de outliers}
 
@@ -138,6 +165,8 @@ El analisis de medias confirmo diferencias marcadas entre clases, especialmente 
 
 El pairplot de las variables mas discriminativas evidencio separacion clara entre clases: los benignos se agrupan en zonas de valores bajos y los malignos en rangos mas altos.
 
+\textbf{Decision metodologica:} esta separabilidad respalda el uso de modelos con fronteras de decision bien definidas (Regresion Logistica y SVM) y deja KNN como baseline no parametrico para comparar robustez.
+
 \section{Hipotesis Iniciales}
 
 Con base en el EDA, se plantearon las siguientes hipotesis para el modelado:
@@ -149,5 +178,29 @@ Con base en el EDA, se plantearon las siguientes hipotesis para el modelado:
 \item \textbf{H4:} La multicolinealidad entre variables de uniformidad podria afectar la estabilidad de modelos lineales sin regularizacion.
 \item \textbf{H5:} Los outliers detectados no deben eliminarse automaticamente, pues representan casos clinicamente relevantes que el modelo debe aprender.
 \end{enumerate}
+
+\section{Plan de accion derivado del EDA}
+
+Para dejar trazabilidad entre hallazgos y decisiones, se establece el siguiente plan operativo para Semana 2:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item \textbf{Hallazgo: separabilidad marcada por clase} $\rightarrow$ entrenar y comparar LR, KNN y SVM, esperando mejor desempeno de fronteras lineales/no lineales bien definidas.
+\item \textbf{Hallazgo: colinealidad alta} ($r=0.91$) $\rightarrow$ usar L2 en LR y evaluar dos escenarios de variables (A: todas, B: subconjunto) para medir estabilidad y desempeno.
+\item \textbf{Hallazgo: desbalance 65/35} $\rightarrow$ priorizar recall de clase maligna y configurar pesos de clase balanceados; no usar SMOTE en esta etapa.
+\end{enumerate}
+
+\section{Sintesis tecnica de Semana 1}
+
+El EDA permitio pasar de observaciones descriptivas a decisiones de diseno concretas para modelado. El valor de Semana 1 no fue solo describir los datos, sino dejar establecido un criterio de evaluacion clinica: minimizar omisiones de malignidad, incluso si eso implica sacrificar parte de la precision en etapas posteriores.
+
+\section{Ajustes aplicados por retroalimentacion}
+
+Para corregir los vacios detectados en la version anterior de Semana 1, se deja explicito que cada hallazgo del EDA conduce a una decision concreta de modelado en Semana 2:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Separabilidad entre clases $\rightarrow$ probar fronteras lineales y no lineales (LR, KNN, SVM).
+\item Colinealidad alta $\rightarrow$ manejar con L2, comparar escenarios A/B y documentar evaluacion de PCA.
+\item Desbalance moderado $\rightarrow$ usar \texttt{class\_weight='balanced'} y priorizar recall de maligna; no usar SMOTE en esta fase.
+\end{itemize}
 
 \end{document}

@@ -251,6 +251,8 @@ No se observa sobreajuste clasico fuerte. El trade-off dominante en SVM A optimi
 \item Reduccion de precision y AUC frente a LR
 \end{itemize}
 
+Esta estabilidad tambien es coherente con la naturaleza del problema: el dataset es relativamente pequeno, pero presenta separabilidad alta en variables clave detectadas desde el EDA. Bajo estas condiciones, es esperable observar gaps CV-test reducidos cuando el protocolo de validacion y control de fuga se mantiene estricto.
+
 Interpretacion tecnica:
 
 \begin{itemize}[leftmargin=1.2cm]
@@ -315,7 +317,21 @@ B & KNN & 0.9578 & 0.9149 & 0.9348 & 0.9897 & 4 & no \\
 \item Frente a LR optimizada, SVM A sacrifica precision y AUC.
 \item Se prioriza seguridad diagnostica (menos omisiones de malignos) sobre pureza probabilistica.
 \item Esta decision es consistente con el objetivo del proyecto.
+\item Cuantificacion del costo: en test, SVM A obtiene TP=47 y FN=0 con precision 0.9038, lo que implica FP=5. LR A obtiene TP=45, FN=2 y FP=3. Es decir, SVM evita 2 falsos negativos a cambio de 2 falsos positivos adicionales.
+\item Desde el criterio clinico del proyecto, este intercambio es aceptable porque un falso negativo en cancer tiene un costo potencialmente mayor que un falso positivo (que deriva en evaluacion adicional).
 \end{itemize}
+
+\section{Cierre de hipotesis de Semana 1 (H1--H5)}
+
+Para cerrar la coherencia del proyecto, se verifican las hipotesis planteadas en el EDA:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item \textbf{H1 (features mas importantes):} confirmada parcialmente. \texttt{Bare Nuclei} y variables de uniformidad sostienen alto poder predictivo, aunque el mejor modelo final usa todas las variables.
+\item \textbf{H2 (ventaja de modelos no lineales):} confirmada. SVM-RBF optimizado logra el mejor recall y FN minimo.
+\item \textbf{H3 (priorizar recall maligna):} confirmada y aplicada como metrica objetivo de tuning.
+\item \textbf{H4 (impacto de colinealidad):} gestionada con L2 en LR y con comparacion de escenarios A/B. No comprometio la seleccion final, pero si condiciono decisiones metodologicas.
+\item \textbf{H5 (mantener outliers clinicos):} sostenida. No se eliminaron outliers de forma automatica y el desempeno final se mantuvo robusto.
+\end{enumerate}
 
 \section{Verificacion de consistencia (notebook vs resultados vs documento)}
 
@@ -348,6 +364,16 @@ No se detectaron inconsistencias numericas relevantes entre fuentes para la sele
 \item SVM optimizado domina el objetivo principal (sensibilidad de clase maligna) y reduce al minimo los errores criticos.
 \item La seleccion final tecnicamente justificada es \textbf{SVM optimizado en Escenario A}.
 \end{enumerate}
+
+\section{Ajustes aplicados por retroalimentacion}
+
+Para reparar los puntos observados en la evaluacion previa, esta version de Semana 3 incorpora:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item Cierre formal de ciclo \textbf{EDA $\rightarrow$ Hipotesis H1--H5 $\rightarrow$ evidencia final}.
+\item Justificacion de por que no se observa sobreajuste fuerte (separabilidad alta + protocolo estable de validacion).
+\item Cuantificacion explicita del trade-off clinico del modelo final (SVM vs LR en TP, FP y FN).
+\end{itemize}
 
 Con esto queda cerrada la exigencia de Semana 3: comparacion formal, seleccion de modelo, justificacion de sesgo/varianza y trade-offs, y consistencia entre notebook y documento.
 

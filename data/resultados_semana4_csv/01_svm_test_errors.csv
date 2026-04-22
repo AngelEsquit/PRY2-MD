@@ -1,0 +1,6 @@
+Clump Thickness,Uniformity of Cell Size,Uniformity of Cell Shape,Marginal Adhesion,Single Epithelial Cell Size,Bare Nuclei,Bland Chromatin,Normal Nucleoli,Mitoses,y_real,y_pred_svm,y_pred_lr,svm_tipo,lr_tipo,indice_original
+5,3,4,3,4,5,4,7,1,2,4,4,FP,FP,280
+1,1,1,1,5,1,3,1,1,2,4,2,FP,OK,300
+4,4,4,4,6,5,7,3,1,2,4,4,FP,FP,301
+3,3,2,2,3,1,1,2,3,2,4,2,FP,OK,365
+5,4,4,5,7,10,3,2,1,2,4,4,FP,FP,1

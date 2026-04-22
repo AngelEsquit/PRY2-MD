@@ -1,0 +1,10 @@
+Variable,rf,lr_abs,avg
+Bare Nuclei,3.0,1.0,2.0
+Uniformity of Cell Shape,2.0,3.0,2.5
+Uniformity of Cell Size,1.0,6.0,3.5
+Clump Thickness,7.0,2.0,4.5
+Bland Chromatin,5.0,4.0,4.5
+Marginal Adhesion,8.0,5.0,6.5
+Single Epithelial Cell Size,4.0,9.0,6.5
+Normal Nucleoli,6.0,7.0,6.5
+Mitoses,9.0,8.0,8.5

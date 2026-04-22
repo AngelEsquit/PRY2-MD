@@ -10,6 +10,7 @@
 \usepackage{longtable}
 \usepackage{array}
 \usepackage{float}
+\usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{hyperref}
 
@@ -82,6 +83,10 @@ La variable objetivo fue \texttt{Class}. Se evaluaron dos escenarios:
 
 Se documento la multicolinealidad alta entre \texttt{Uniformity of Cell Size} y \texttt{Uniformity of Cell Shape} ($r = 0.91$), considerada un riesgo para modelos lineales sin regularizacion.
 
+\textbf{Conexion explicita con Semana 1:} el Escenario B no es solo una reduccion por desempeno, sino una respuesta directa al hallazgo de colinealidad del EDA. Su objetivo fue medir si un subconjunto pequeno y altamente informativo podia sostener rendimiento con menor redundancia.
+
+\textbf{Sobre PCA:} se considero PCA como alternativa de manejo de colinealidad, pero no se adopto en esta etapa por tres razones: (i) solo hay 9 variables originales, (ii) se priorizo interpretabilidad clinica de variables observables, y (iii) la estrategia L2 + comparacion A/B permitia controlar colinealidad sin perder trazabilidad de cada rasgo.
+
 \section{Modelos Base}
 
 Se entrenaron tres modelos sin tuning para establecer referencia comparativa.
@@ -89,6 +94,8 @@ Se entrenaron tres modelos sin tuning para establecer referencia comparativa.
 \subsection{Regresion Logistica}
 
 Modelo lineal de referencia para clasificacion binaria. Se aplico \texttt{StandardScaler}. La regularizacion L2 por defecto mitiga parcialmente el efecto de multicolinealidad y permite interpretacion directa de coeficientes.
+
+Esta configuracion se uso deliberadamente como respuesta tecnica al riesgo de colinealidad identificado en Semana 1.
 
 \subsection{KNN (k = 5)}
 
@@ -134,6 +141,12 @@ SVM (RBF) & 85 & 3 & 2 & 45 & 0.9574 \\
 
 En este escenario, SVM supero a LR y KNN en recall y en reduccion de falsos negativos.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/s2_metricas_A.png}
+\caption{Comparacion visual de metricas de modelos base en Escenario A.}
+\end{figure}
+
 \subsection{Escenario B: Top 3 variables}
 
 \begin{table}[H]
@@ -152,6 +165,22 @@ SVM (RBF) & 0.9481 & 0.9348 & 0.9149 & 0.9247 \\
 
 Al reducir variables, LR se degrada de forma mas marcada en recall, mientras que KNN y SVM muestran mayor robustez.
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/s2_metricas_B.png}
+\caption{Comparacion visual de metricas de modelos base en Escenario B.}
+\end{figure}
+
+\subsection{Lectura comparativa A vs B}
+
+Al pasar de A a B se observa un patron claro:
+
+\begin{itemize}[leftmargin=1.2cm]
+\item En LR, la reduccion de variables provoca la mayor caida de sensibilidad en clase maligna.
+\item En KNN y SVM, el deterioro es menor, lo que sugiere mayor robustez ante compresion del espacio de variables.
+\item El mejor baseline global sigue estando en Escenario A, lo que justifica que la optimizacion de Semana 3 priorice ese escenario para la seleccion final.
+\end{itemize}
+
 \section{Conclusiones Iniciales}
 
 \begin{enumerate}[leftmargin=1.2cm]
@@ -160,7 +189,18 @@ Al reducir variables, LR se degrada de forma mas marcada en recall, mientras que
 \item LR mantiene ventaja interpretativa por coeficientes, aunque pierde robustez al reducir variables.
 \item KNN y SVM fueron mas robustos que LR en Escenario B.
 \item Se confirma la hipotesis H3 de Semana 1: recall de clase maligna como metrica prioritaria.
-\item La hipotesis H4 se manejo mediante regularizacion L2 en LR, manteniendo desempeno competitivo.
+\item La hipotesis H4 se abordo explicitamente con regularizacion L2 en LR y con el diseno de Escenario B como prueba de robustez ante colinealidad.
+\item Aunque PCA era viable tecnicamente, se decidio no usarlo para conservar interpretabilidad de variables clinicas y porque el rendimiento obtenido con A/B + L2 fue suficiente para pasar a optimizacion.
+\end{enumerate}
+
+\section{Ajustes aplicados por retroalimentacion}
+
+Con respecto a los errores de narrativa de la version previa, esta semana queda corregida en tres puntos:
+
+\begin{enumerate}[leftmargin=1.2cm]
+\item Se conecta explicitamente el \textbf{Escenario B} con el hallazgo de colinealidad de Semana 1.
+\item Se documenta la decision metodologica sobre \textbf{PCA} (evaluado y no adoptado en esta fase).
+\item Se deja trazabilidad de que la \textbf{regularizacion L2 en LR} se uso como respuesta tecnica a la colinealidad identificada en el EDA.
 \end{enumerate}
 
 \section{Anexo}
