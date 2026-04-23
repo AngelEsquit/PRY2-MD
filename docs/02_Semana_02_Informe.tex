@@ -9,203 +9,313 @@
 \usepackage{tabularx}
 \usepackage{longtable}
 \usepackage{array}
+\usepackage{multirow}
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{enumitem}
 \usepackage{hyperref}
+\usepackage{xcolor}
+\usepackage{colortbl}
+\usepackage{fancyhdr}
+\usepackage{amsmath}
 
 \geometry{margin=2.5cm}
-\setlength{\parskip}{0.6em}
+\setlength{\parskip}{0.5em}
 \setlength{\parindent}{0pt}
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
 
-\title{Proyecto 2 - Data Mining\\\large Semana 2: Preparacion de Datos y Modelos Base}
-\author{Javier Espana \and Angel Esquit \and Roberto Barreda \and Diego Lopez}
+\definecolor{malignored}{RGB}{231,76,60}
+\definecolor{benigngreen}{RGB}{46,204,113}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{darkblue}{RGB}{41,128,185}
+\definecolor{bestrow}{RGB}{212,239,223}
+\definecolor{warnrow}{RGB}{253,237,236}
+
+\setlength{\headheight}{14pt}
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\textit{Proyecto 2 -- Data Mining}}
+\rhead{\textit{Semana 2: Preprocesamiento y Modelos Base}}
+\cfoot{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\title{\textbf{Proyecto 2 -- Data Mining}\\[0.4em]
+       \large Semana 2: Preparación de Datos y Modelos Base}
+\author{Javier España \and Ángel Esquit \and Roberto Barreda \and Diego López}
 \date{Abril 2026}
 
 \begin{document}
 
 \maketitle
+\thispagestyle{empty}
 
 \begin{center}
-Universidad del Valle de Guatemala\\
-Curso: Data Mining\\
-Dataset: Wisconsin Breast Cancer Dataset\\
-Objetivo de clasificacion: \texttt{Class} (2 = Benigno, 4 = Maligno)
+\large Universidad del Valle de Guatemala\\[0.2em]
+\normalsize Curso: Data Mining \quad|\quad Dataset: Wisconsin Breast Cancer Dataset\\[0.2em]
+Variable objetivo: \texttt{Class} \;(2 = Benigno, 4 = Maligno)
 \end{center}
 
-\hrule
+\vspace{0.5em}\hrule\vspace{0.5em}
 
+\tableofcontents
+\newpage
+
+% ─────────────────────────────────────────────
 \section{Objetivo de Semana 2}
+% ─────────────────────────────────────────────
 
-Durante la Semana 2 se realizo la preparacion formal de datos, la seleccion de escenarios de variables y el entrenamiento de tres modelos base sin optimizacion de hiperparametros. Esta fase establecio la linea base para la comparacion posterior en Semana 3.
+Con base en los hallazgos del EDA de Semana 1, esta fase tuvo tres objetivos concretos: (1) convertir el dataset crudo en un dataset de modelado limpio y trazable; (2) implementar dos escenarios de variables como respuesta directa al hallazgo de colinealidad; y (3) establecer una línea base de rendimiento con tres modelos sin optimizar, usando las métricas prioritarias definidas en el EDA.
 
+% ─────────────────────────────────────────────
 \section{Preprocesamiento de Datos}
+% ─────────────────────────────────────────────
 
-\subsection{Limpieza del dataset}
+\subsection{Diagnóstico del dataset original}
 
-El archivo \texttt{Datos.csv} contiene 683 registros originales y 11 columnas. Se aplicaron los siguientes pasos:
-
-\begin{itemize}[leftmargin=1.2cm]
-\item Eliminacion de 8 filas duplicadas.
-\item Tratamiento de \texttt{Bare Nuclei}: los valores \texttt{"?"} se reemplazaron por nulos y se eliminaron las filas correspondientes.
-\item Verificacion de rangos validos (1--10) en variables predictoras.
-\item Exclusion de \texttt{Sample code number} por ser identificador no predictivo.
-\end{itemize}
-
-El dataset final para modelado (\texttt{Datos\_modelado.csv}) quedo en 675 registros, con 9 variables predictoras y la variable objetivo \texttt{Class}.
-
-\subsection{Particion de datos}
-
-Se utilizo particion \texttt{train/test = 80/20} estratificada con \texttt{random\_state = 42}, preservando la proporcion de clases en ambos conjuntos.
+Se partió de \texttt{Datos.csv} con 683 registros y 11 columnas. Antes de entrenar cualquier modelo se realizó un diagnóstico sistemático del estado del dataset:
 
 \begin{table}[H]
 \centering
-\caption{Distribucion de muestras por particion y clase}
-\begin{tabular}{lccc}
+\caption{Diagnóstico del dataset original antes de limpieza}
+\begin{tabular}{lcc}
 \toprule
-Particion & Total & Benigno (2) & Maligno (4) \\
+\textbf{Problema detectado} & \textbf{Descripción} & \textbf{Conteo} \\
 \midrule
-Entrenamiento & 540 & 351 (65.0\%) & 189 (35.0\%) \\
-Prueba & 135 & 88 (65.2\%) & 47 (34.8\%) \\
+Registros duplicados exactos & Filas idénticas en todas las columnas & 8 \\
+Identificador no predictivo & \texttt{Sample code number} sin valor para modelado & 1 columna \\
+Valores fuera de rango (predictoras) & Valores $< 1$ o $> 10$ en variables 1--10 & 0 \\
+Valores nulos directos & \texttt{NaN} o \texttt{None} en cualquier columna & 0 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-\section{Seleccion de Variables}
+\noindent\textbf{Nota sobre \texttt{Bare Nuclei}:} en la versión estándar del Wisconsin Breast Cancer Dataset publicada en UCI, esta variable contiene 16 valores codificados como \texttt{``?''}. En el presente dataset (\texttt{Datos.csv}), la columna ya viene limpia con valores numéricos válidos en el rango 1--10. Sin embargo, el pipeline de limpieza incluyó la detección y tratamiento de esos marcadores por robustez, por si aparecieran en re-ejecuciones con datos externos.
 
-La variable objetivo fue \texttt{Class}. Se evaluaron dos escenarios:
+\subsection{Pasos de limpieza aplicados}
 
-\begin{itemize}[leftmargin=1.2cm]
-\item \textbf{Escenario A:} las 9 caracteristicas citologicas disponibles.
-\item \textbf{Escenario B:} top 3 variables con mayor correlacion con el diagnostico: \texttt{Bare Nuclei}, \texttt{Uniformity of Cell Size} y \texttt{Uniformity of Cell Shape}.
-\end{itemize}
+\begin{enumerate}[leftmargin=1.4cm]
+\item \textbf{Eliminación de duplicados:} se identificaron y removieron 8 filas duplicadas exactas.
+\item \textbf{Detección de marcadores inválidos:} búsqueda de valores \texttt{``?''} en todas las columnas; ninguno encontrado en este dataset.
+\item \textbf{Verificación de rangos:} todas las variables predictoras confirmadas en el rango 1--10.
+\item \textbf{Exclusión de identificador:} \texttt{Sample code number} excluido por no tener valor predictivo.
+\item \textbf{Exportación:} se generó \texttt{Datos\_modelado.csv} como dataset oficial para modelado.
+\end{enumerate}
 
-Se documento la multicolinealidad alta entre \texttt{Uniformity of Cell Size} y \texttt{Uniformity of Cell Shape} ($r = 0.91$), considerada un riesgo para modelos lineales sin regularizacion.
+\begin{table}[H]
+\centering
+\caption{Comparación dataset original vs dataset de modelado}
+\begin{tabular}{lccc}
+\toprule
+\textbf{Característica} & \textbf{Original (\texttt{Datos.csv})} & \textbf{Modelado (\texttt{Datos\_modelado.csv})} & \textbf{Diferencia} \\
+\midrule
+Registros & 683 & 675 & $-8$ (duplicados) \\
+Columnas & 11 & 10 & $-1$ (ID excluido) \\
+Variables predictoras & 9 & 9 & Sin cambio \\
+Valores nulos & 0 & 0 & Sin cambio \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\textbf{Conexion explicita con Semana 1:} el Escenario B no es solo una reduccion por desempeno, sino una respuesta directa al hallazgo de colinealidad del EDA. Su objetivo fue medir si un subconjunto pequeno y altamente informativo podia sostener rendimiento con menor redundancia.
+\subsection{Partición train / test}
 
-\textbf{Sobre PCA:} se considero PCA como alternativa de manejo de colinealidad, pero no se adopto en esta etapa por tres razones: (i) solo hay 9 variables originales, (ii) se priorizo interpretabilidad clinica de variables observables, y (iii) la estrategia L2 + comparacion A/B permitia controlar colinealidad sin perder trazabilidad de cada rasgo.
+Se utilizó partición estratificada 80/20 con \texttt{random\_state=42} para garantizar reproducibilidad y preservar la proporción de clases en ambos conjuntos:
 
+\begin{table}[H]
+\centering
+\caption{Distribución de muestras y clases en la partición}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Partición} & \textbf{Total} & \textbf{Benigno (2)} & \textbf{Maligno (4)} & \textbf{Ratio Ben/Mal} \\
+\midrule
+\rowcolor{lightgray}
+Completo & 675 & 439 (65.0\%) & 236 (35.0\%) & 1.86:1 \\
+Entrenamiento & 540 & 351 (65.0\%) & 189 (35.0\%) & 1.86:1 \\
+Prueba & 135 & 88 (65.2\%) & 47 (34.8\%) & 1.87:1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La diferencia máxima de proporciones entre particiones es de 0.2 puntos porcentuales, confirmando que la estratificación funcionó correctamente.
+
+% ─────────────────────────────────────────────
+\section{Escenarios de Variables}
+% ─────────────────────────────────────────────
+
+Se definieron dos escenarios de variables como respuesta directa a los hallazgos de colinealidad del EDA:
+
+\begin{table}[H]
+\centering
+\caption{Definición de los escenarios de variables y su justificación}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabularx}{\textwidth}{l l X}
+\toprule
+\textbf{Escenario} & \textbf{Variables incluidas} & \textbf{Justificación} \\
+\midrule
+\textbf{A} -- Todas & 9 variables citológicas & Baseline completo; permite que los modelos aprovechen toda la información disponible \\
+\midrule
+\textbf{B} -- Top 3 & \texttt{Bare Nuclei}, \texttt{Uniformity of Cell Size}, \texttt{Uniformity of Cell Shape} & Respuesta directa a la colinealidad ($r=0.91$) detectada en Semana 1. Mide si el subconjunto más informativo puede sostener rendimiento con menor redundancia \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Sobre PCA:} se evaluó como alternativa para manejar la colinealidad, pero se descartó en esta etapa por tres razones: (i) solo hay 9 variables originales, lo que limita la compresión significativa; (ii) se priorizó interpretabilidad clínica de variables observables; (iii) la estrategia L2 + comparación A/B permite controlar la colinealidad sin perder trazabilidad de cada rasgo citológico. Si el rendimiento en Semana 3 no fuera satisfactorio, PCA quedaría como alternativa para Semana 4.
+
+% ─────────────────────────────────────────────
 \section{Modelos Base}
+% ─────────────────────────────────────────────
 
-Se entrenaron tres modelos sin tuning para establecer referencia comparativa.
+Se entrenaron tres modelos sin optimización de hiperparámetros para establecer una línea de referencia. Todos usan \texttt{StandardScaler} dentro de un \texttt{Pipeline} para evitar fuga de información.
 
-\subsection{Regresion Logistica}
+\subsection{Regresión Logística (LR)}
 
-Modelo lineal de referencia para clasificacion binaria. Se aplico \texttt{StandardScaler}. La regularizacion L2 por defecto mitiga parcialmente el efecto de multicolinealidad y permite interpretacion directa de coeficientes.
+Modelo lineal de referencia para clasificación binaria. La regularización L2 por defecto (\texttt{C=1.0}) se usó \textit{deliberadamente} como respuesta técnica al riesgo de colinealidad identificado en el EDA: el término de penalización estabiliza los coeficientes cuando las variables son altamente correlacionadas, evitando que pequeñas perturbaciones en los datos generen cambios grandes en los pesos del modelo.
 
-Esta configuracion se uso deliberadamente como respuesta tecnica al riesgo de colinealidad identificado en Semana 1.
+\textbf{Parámetros base:} \texttt{solver=`lbfgs'}, \texttt{penalty=`l2'}, \texttt{C=1.0}, \texttt{class\_weight=`balanced'}.
 
-\subsection{KNN (k = 5)}
+\subsection{K-Nearest Neighbors (KNN, k=5)}
 
-Clasificador basado en vecinos mas cercanos, sin supuestos de linealidad en la frontera de decision. Requiere escalado de variables y se utilizo \texttt{k=5} como baseline.
+Clasificador no paramétrico basado en distancia. No asume ninguna forma funcional para la frontera de decisión, lo que lo hace útil como punto de comparación cuando la distribución real de los datos es incierta. Requiere escalado de variables (realizado en el pipeline). Se usó $k=5$ como baseline estándar.
+
+\textbf{Parámetros base:} \texttt{n\_neighbors=5}, \texttt{weights=`uniform'}, \texttt{metric=`minkowski'}.
 
 \subsection{SVM con kernel RBF}
 
-Modelo no lineal basado en maximizacion de margen con kernel RBF. Se eligio por la separabilidad observada en el EDA y su robustez relativa frente a outliers. Parametros base: \texttt{C=1.0} y \texttt{gamma="scale"}.
+Modelo no lineal basado en maximización de margen. Se eligió por dos razones derivadas del EDA: (1) la alta separabilidad visual entre clases sugería que una frontera de margen máximo sería eficiente; (2) el kernel RBF permite capturar relaciones no lineales en el espacio de variables sin imponer forma funcional explícita. Adicionalmente, SVM es intrínsecamente robusto frente a outliers por construcción (solo los vectores de soporte influyen en la frontera).
 
-\section{Resultados y Comparacion}
+\textbf{Parámetros base:} \texttt{C=1.0}, \texttt{gamma=`scale'}, \texttt{kernel=`rbf'}, \texttt{class\_weight=`balanced'}.
 
-\subsection{Escenario A: Todas las variables}
+% ─────────────────────────────────────────────
+\section{Resultados: Escenario A (Todas las variables)}
+% ─────────────────────────────────────────────
 
-Las metricas se reportan para la clase positiva (maligna).
+Las métricas de precisión, recall y F1 se reportan para la clase positiva (maligna, \texttt{Class=4}).
 
 \begin{table}[H]
 \centering
-\caption{Metricas de modelos base en Escenario A}
-\begin{tabular}{lcccc}
+\caption{Métricas de modelos base -- Escenario A (todas las variables, conjunto de prueba)}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcccccc}
 \toprule
-Modelo & Accuracy & Precision & Recall & F1-Score \\
+\textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{FN} \\
 \midrule
-Regresion Logistica & 0.9556 & 0.9362 & 0.9362 & 0.9362 \\
-KNN (k=5) & 0.9556 & 0.9362 & 0.9362 & 0.9362 \\
-SVM (RBF) & 0.9630 & 0.9375 & 0.9574 & 0.9474 \\
+Regresión Logística & 0.9556 & 0.9362 & 0.9362 & 0.9362 & 3 \\
+KNN (k=5) & 0.9556 & 0.9362 & 0.9362 & 0.9362 & 3 \\
+\rowcolor{bestrow}
+SVM (RBF) & \textbf{0.9630} & \textbf{0.9375} & \textbf{0.9574} & \textbf{0.9474} & \textbf{2} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 \begin{table}[H]
 \centering
-\caption{Matrices de confusion en Escenario A (FN = falsos negativos)}
-\begin{tabular}{lccccc}
+\caption{Matrices de confusión -- Escenario A (clase positiva = Maligno)}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcccccc}
 \toprule
-Modelo & TN & FP & FN & TP & Recall \\
+\textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Total test} \\
 \midrule
-Regresion Logistica & 85 & 3 & 3 & 44 & 0.9362 \\
-KNN (k=5) & 85 & 3 & 3 & 44 & 0.9362 \\
-SVM (RBF) & 85 & 3 & 2 & 45 & 0.9574 \\
+Regresión Logística & 85 & 3 & 3 & 44 & 135 \\
+KNN (k=5) & 85 & 3 & 3 & 44 & 135 \\
+\rowcolor{bestrow}
+SVM (RBF) & 85 & 3 & 2 & 45 & 135 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-En este escenario, SVM supero a LR y KNN en recall y en reduccion de falsos negativos.
+\textbf{Lectura:} los tres modelos tienen exactamente los mismos FP (3), pero SVM reduce los FN de 3 a 2, lo que se traduce directamente en un recall más alto. Esta diferencia, aunque pequeña en términos absolutos (1 caso), es clínicamente relevante: representa un paciente con cáncer que hubiera sido clasificado incorrectamente como benigno.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/s2_metricas_A.png}
-\caption{Comparacion visual de metricas de modelos base en Escenario A.}
+\caption{Comparación visual de métricas en Escenario A. SVM supera levemente a LR y KNN en Recall y F1; los tres modelos tienen idéntico AUC de 0.99+.}
 \end{figure}
 
-\subsection{Escenario B: Top 3 variables}
+% ─────────────────────────────────────────────
+\section{Resultados: Escenario B (Top 3 variables)}
+% ─────────────────────────────────────────────
 
 \begin{table}[H]
 \centering
-\caption{Metricas de modelos base en Escenario B}
-\begin{tabular}{lcccc}
+\caption{Métricas de modelos base -- Escenario B (top 3 variables, conjunto de prueba)}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{lcccccc}
 \toprule
-Modelo & Accuracy & Precision & Recall & F1-Score \\
+\textbf{Modelo} & \textbf{Accuracy} & \textbf{Precision} & \textbf{Recall} & \textbf{F1-Score} & \textbf{FN} \\
 \midrule
-Regresion Logistica & 0.9259 & 0.9302 & 0.8511 & 0.8889 \\
-KNN (k=5) & 0.9481 & 0.9348 & 0.9149 & 0.9247 \\
-SVM (RBF) & 0.9481 & 0.9348 & 0.9149 & 0.9247 \\
+\rowcolor{warnrow}
+Regresión Logística & 0.9259 & 0.9302 & 0.8511 & 0.8889 & 7 \\
+KNN (k=5) & 0.9481 & 0.9348 & 0.9149 & 0.9247 & 4 \\
+SVM (RBF) & 0.9481 & 0.9348 & 0.9149 & 0.9247 & 4 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-Al reducir variables, LR se degrada de forma mas marcada en recall, mientras que KNN y SVM muestran mayor robustez.
+\begin{table}[H]
+\centering
+\caption{Matrices de confusión -- Escenario B}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcccccc}
+\toprule
+\textbf{Modelo} & \textbf{TN} & \textbf{FP} & \textbf{FN} & \textbf{TP} & \textbf{Total test} \\
+\midrule
+\rowcolor{warnrow}
+Regresión Logística & 82 & 6 & 7 & 40 & 135 \\
+KNN (k=5) & 85 & 3 & 4 & 43 & 135 \\
+SVM (RBF) & 85 & 3 & 4 & 43 & 135 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Hallazgo clave:} la reducción a 3 variables afecta de forma muy distinta a cada modelo. LR sufre una caída dramática en recall (de 93.6\% a 85.1\%) y sus FN se triplican (de 3 a 7). KNN y SVM, en cambio, degradan de forma mucho más controlada. Esto confirma que la colinealidad afecta principalmente a LR porque perder variables redundantes pero informativas desestabiliza sus coeficientes.
 
 \begin{figure}[H]
 \centering
 \includegraphics[width=0.9\textwidth]{figures/s2_metricas_B.png}
-\caption{Comparacion visual de metricas de modelos base en Escenario B.}
+\caption{Comparación visual de métricas en Escenario B. La caída de LR en Recall es notablemente mayor que la de KNN y SVM.}
 \end{figure}
 
-\subsection{Lectura comparativa A vs B}
+% ─────────────────────────────────────────────
+\section{Comparación Cruzada A vs B}
+% ─────────────────────────────────────────────
 
-Al pasar de A a B se observa un patron claro:
+\begin{table}[H]
+\centering
+\caption{Impacto de la reducción de variables (A $\rightarrow$ B) en Recall de clase maligna y FN}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Modelo} & \textbf{Recall A} & \textbf{Recall B} & \textbf{$\Delta$ Recall} & \textbf{$\Delta$ FN} \\
+\midrule
+\rowcolor{warnrow}
+Regresión Logística & 0.9362 & 0.8511 & $-$0.0851 & $+4$ \\
+KNN (k=5) & 0.9362 & 0.9149 & $-$0.0213 & $+1$ \\
+SVM (RBF) & 0.9574 & 0.9149 & $-$0.0425 & $+2$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\begin{itemize}[leftmargin=1.2cm]
-\item En LR, la reduccion de variables provoca la mayor caida de sensibilidad en clase maligna.
-\item En KNN y SVM, el deterioro es menor, lo que sugiere mayor robustez ante compresion del espacio de variables.
-\item El mejor baseline global sigue estando en Escenario A, lo que justifica que la optimizacion de Semana 3 priorice ese escenario para la seleccion final.
-\end{itemize}
+El patrón es consistente: todos los modelos pierden recall al reducir variables, pero LR pierde 4 veces más que KNN. Esto tiene dos implicaciones para Semana 3:
 
-\section{Conclusiones Iniciales}
-
-\begin{enumerate}[leftmargin=1.2cm]
-\item El mejor modelo base fue \textbf{SVM con kernel RBF} en Escenario A, por mayor recall y menor FN.
-\item Regresion Logistica y KNN empataron en Escenario A, quedando como candidatos competitivos.
-\item LR mantiene ventaja interpretativa por coeficientes, aunque pierde robustez al reducir variables.
-\item KNN y SVM fueron mas robustos que LR en Escenario B.
-\item Se confirma la hipotesis H3 de Semana 1: recall de clase maligna como metrica prioritaria.
-\item La hipotesis H4 se abordo explicitamente con regularizacion L2 en LR y con el diseno de Escenario B como prueba de robustez ante colinealidad.
-\item Aunque PCA era viable tecnicamente, se decidio no usarlo para conservar interpretabilidad de variables clinicas y porque el rendimiento obtenido con A/B + L2 fue suficiente para pasar a optimizacion.
+\begin{enumerate}[leftmargin=1.4cm]
+\item El \textbf{Escenario A} es el candidato principal para la optimización final, ya que sostiene mejor rendimiento en todos los modelos.
+\item LR necesitará \textbf{tuning de regularización} para estabilizarse, especialmente si se expande el espacio de hiperparámetros más allá del valor por defecto ($C=1.0$).
 \end{enumerate}
 
-\section{Ajustes aplicados por retroalimentacion}
+% ─────────────────────────────────────────────
+\section{Conclusiones de Semana 2}
+% ─────────────────────────────────────────────
 
-Con respecto a los errores de narrativa de la version previa, esta semana queda corregida en tres puntos:
-
-\begin{enumerate}[leftmargin=1.2cm]
-\item Se conecta explicitamente el \textbf{Escenario B} con el hallazgo de colinealidad de Semana 1.
-\item Se documenta la decision metodologica sobre \textbf{PCA} (evaluado y no adoptado en esta fase).
-\item Se deja trazabilidad de que la \textbf{regularizacion L2 en LR} se uso como respuesta tecnica a la colinealidad identificada en el EDA.
+\begin{enumerate}[leftmargin=1.4cm]
+\item El dataset fue limpiado de forma trazable: 8 duplicados eliminados, identificador excluido, 675 registros finales.
+\item \textbf{SVM con kernel RBF} es el mejor modelo base en Escenario A, con el mayor Recall (0.9574) y el menor número de falsos negativos (2).
+\item LR y KNN empatan en Escenario A, pero LR es más sensible a la reducción de variables, lo que confirma el riesgo de colinealidad identificado en Semana 1.
+\item El Escenario A supera al B en todos los modelos. Escenario B no es un fracaso: evidencia que con solo 3 variables ya se obtiene 91--93\% de recall, lo que cuantifica el poder predictivo del subconjunto discriminativo.
+\item La hipótesis H3 (Recall como métrica principal) queda reforzada: un modelo con accuracy de 95.6\% puede aún tener 3 falsos negativos clínicamente críticos.
+\item La hipótesis H4 (impacto de colinealidad en LR) queda confirmada: LR es el modelo más afectado por la reducción de variables.
 \end{enumerate}
 
-\section{Anexo}
-
-Repositorio del proyecto:\\
+\vspace{1em}
+\noindent\textbf{Repositorio del proyecto:}
 \url{https://github.com/AngelEsquit/PRY2-MD.git}
 
 \end{document}
